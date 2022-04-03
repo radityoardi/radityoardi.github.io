@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkrdz_tools=self.webpackChunkrdz_tools||[]).push([[565],{1565:function(e,n,r){r.r(n),r.d(n,{Home:function(){return u}});var s=r(2791),t=r(184),u=function(){return(0,t.jsx)(s.Fragment,{children:"This is homeasd"})};n.default=u}}]);
+//# sourceMappingURL=565.e7dc919a.chunk.js.map
