@@ -2,12 +2,12 @@ import React, { CSSProperties } from 'react';
 import * as Fluent from '@fluentui/react';
 import './Fonts.scss';
 import { initializeIcons } from '@fluentui/font-icons-mdl2';
-import { generateTheme, IThemeInfo } from './components/FluentThemeGenerator';
+import { generateTheme, IThemeInfo } from './components/utils/FluentThemeGenerator';
 
 initializeIcons();
 
 export const appTheme = generateTheme({
-  primaryColor: "#942a9c", textColor: "#f5f5f5", backgroundColor: "#000000", partialTheme: {
+  primaryColor: "#9c329c", textColor: "#4a4948", backgroundColor: "#fafafa", partialTheme: {
     defaultFontStyle: {
       fontFamily: 'Overlock, Consolas',
       fontWeight: 'Regular'

@@ -1,7 +1,8 @@
 import React, { CSSProperties } from 'react';
 import * as Fluent from '@fluentui/react';
 import * as Hooks from '@fluentui/react-hooks';
-import moment, { Moment } from 'moment';
+import * as Utility from '../utils/Utility';
+import { marked } from 'marked';
 
 const textStyle:CSSProperties = {
 	fontWeight: 'bolder',
@@ -15,6 +16,7 @@ const myPhoto: CSSProperties = {
 };
 
 export const Default:React.FunctionComponent = () => {
+
 	return (
 		<React.Fragment>
 			<img src='ToonRadityoCircle.png' style={myPhoto} />

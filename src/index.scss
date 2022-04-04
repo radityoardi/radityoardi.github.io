@@ -16,6 +16,7 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+    overflow: auto;
 }
 
 body::-webkit-scrollbar-button {
