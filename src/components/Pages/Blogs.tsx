@@ -1,6 +1,7 @@
 import React from 'react';
 import * as Fluent from '@fluentui/react';
 import * as Hooks from '@fluentui/react-hooks';
+import * as Router from 'react-router-dom';
 
 export const Blogs: React.FunctionComponent = () => {
 
@@ -25,9 +26,14 @@ export const Blogs: React.FunctionComponent = () => {
 			<h1>Blogs</h1>
 			<div>
 				{
+					posts.items.length == 0 && (
+						<Fluent.ProgressIndicator label="Fetching" description="Fetching blog posts" />
+					)
+				}
+				{
 					posts && posts.items && posts.items.map((item: any, index: number) => (
 						<React.Fragment>
-							<h2 key={item.id}>{item.title}</h2>
+							<h2 key={item.id}><Fluent.Link href={item.url}>{item.title}</Fluent.Link></h2>
 							<div>Written by {item.author.displayName} on {(new Date(item.published)).toDateString()}</div>
 							<Fluent.Text>
 								<span dangerouslySetInnerHTML={{__html: item.content}}></span>
@@ -35,6 +41,7 @@ export const Blogs: React.FunctionComponent = () => {
 						</React.Fragment>
 					))
 				}
+				
 			</div>
 		</React.Fragment>
 	);

@@ -1,12 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import * as Fluent from '@fluentui/react';
 import './index.scss';
 import App from './App';
+import * as styles from './App.styles';
 import reportWebVitals from './reportWebVitals';
+import * as Router from 'react-router-dom';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Fluent.ThemeProvider theme={styles.appTheme}>
+      <Router.BrowserRouter>
+        <App />
+      </Router.BrowserRouter>
+    </Fluent.ThemeProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );
