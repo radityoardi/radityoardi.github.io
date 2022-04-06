@@ -10,9 +10,9 @@ import * as Router from 'react-router-dom';
 ReactDOM.render(
   <React.StrictMode>
     <Fluent.ThemeProvider theme={styles.appTheme}>
-      <Router.BrowserRouter>
+      <Router.HashRouter>
         <App />
-      </Router.BrowserRouter>
+      </Router.HashRouter>
     </Fluent.ThemeProvider>
   </React.StrictMode>,
   document.getElementById('root')
