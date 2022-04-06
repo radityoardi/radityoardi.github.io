@@ -3,8 +3,7 @@ import * as Router from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { List } from 'linqts';
 
-import Default from '../Pages/Default';
-import Blogs from '../Pages/Blogs';
+import * as Pages from '../Pages';
 
 export interface IAppMenu {
 	pageTitle?: string;
@@ -27,7 +26,7 @@ export const config = {
 			componentName: "Default",
 			url: "/",
 			key: uuidv4(),
-			component: <Default />
+			component: <Pages.Default />
 		},
 		{
 			pageTitle: "Password Generator",
@@ -35,7 +34,8 @@ export const config = {
 			label: "Password Generator",
 			componentName: "PasswordGen",
 			url: "/password-generator",
-			key: uuidv4()
+			key: uuidv4(),
+			component: <Pages.PasswordGen />
 		},
 		{
 			pageTitle: "Blogs",
@@ -44,7 +44,7 @@ export const config = {
 			componentName: "Blogs",
 			url: "/blogs",
 			key: uuidv4(),
-			component: <Blogs />
+			component: <Pages.Blogs />
 		}
 	])
 };

@@ -5,7 +5,7 @@ import * as styles from './App.styles';
 import * as Configs from './components/configs/config';
 import * as Router from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import * as Controls from './components/Controls/Controls';
+import * as Controls from './components/Controls';
 
 const App: React.FunctionComponent = () => {
   ///////////////////////////// Variables
