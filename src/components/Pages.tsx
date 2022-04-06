@@ -3,7 +3,8 @@ import * as Fluent from '@fluentui/react';
 import * as Hooks from '@fluentui/react-hooks';
 import * as Router from 'react-router-dom';
 import * as styles from '../App.styles';
-
+import * as Utility from './utils/Utility';
+import { v4 as uuidv4 } from 'uuid';
 
 export const Blogs: React.FunctionComponent = () => {
 
@@ -12,13 +13,12 @@ export const Blogs: React.FunctionComponent = () => {
 	const bloggerAPIKey = process.env.REACT_APP_GOOGLEAPI_KEY;
 	const bloggerID = process.env.REACT_APP_MAINBLOGID;
 
-	const breakText: React.CSSProperties = {
-		wordBreak: 'break-all'
+	const breakText: Fluent.IStyle = {
+		wordBreak: 'break-word'
 	};
 	React.useEffect(() => {
 		fetch(`https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}`).then(response => response.json()).then(data => {
 			setPosts(data);
-			console.log(data);
 		});
 	}, []);
 
@@ -32,12 +32,19 @@ export const Blogs: React.FunctionComponent = () => {
 				}
 				{
 					posts && posts.items && posts.items.map((item: any, index: number) => (
-						<React.Fragment>
-							<h1 key={item.id}><Fluent.Link href={item.url}>{item.title}</Fluent.Link></h1>
+						<React.Fragment key={uuidv4()}>
+							<h1><Fluent.Link key={uuidv4()} href={item.url}>{item.title}</Fluent.Link></h1>
 							<div>Written by {item.author.displayName} on {(new Date(item.published)).toDateString()}</div>
-							<Fluent.Text style={breakText}>
+							<Fluent.Text key={uuidv4()} styles={{ root: breakText }}>
 								<span dangerouslySetInnerHTML={{ __html: item.content }}></span>
 							</Fluent.Text>
+							{
+								index < posts.items.length - 1 && (
+									<Fluent.Separator>
+										<Fluent.Icon iconName='ReadingMode'></Fluent.Icon>
+									</Fluent.Separator>
+								)
+							}
 						</React.Fragment>
 					))
 				}
@@ -126,13 +133,19 @@ export const PasswordGen: React.FunctionComponent = () => {
 	const generatedPasswordStyle: React.CSSProperties = {
 		backgroundColor: styles.appTheme.palette.themeDark,
 		color: styles.appTheme.palette.themeLight,
-		fontSize: '40px',
+		fontFamily: 'Consolas',
+		fontSize: '20px',
 		padding: '10px',
-		borderRadius: '5px'
+		borderRadius: '5px',
+		cursor: 'pointer'
 	};
 	const resultStyle: React.CSSProperties = {
 		textAlign: 'center',
 		margin: '50px auto 25px'
+	};
+	const desiredPhraseStyle: Fluent.IStyle = {
+		textAlign: 'center',
+		fontSize: '18px'
 	};
 	
 	const tglUcaseLcase = Hooks.useId('tglUcaseLcase');
@@ -148,7 +161,7 @@ export const PasswordGen: React.FunctionComponent = () => {
 	const [NoModifyUppercase, { toggle: toggleNoModifyUppercase }] = Hooks.useBoolean(true);
 	const [SpecialCharacters, { toggle: toggleSpecialCharacters }] = Hooks.useBoolean(true);
 	const [DesiredPhrase, setDesiredPhrase] = React.useState<string>("");
-
+	const [isCalloutVisible, { toggle: toggleIsCalloutVisible }] = Hooks.useBoolean(false);
 
 	const generatePassword = () => {
 		const PreferredPasswordLowerCase = DesiredPhrase.toLowerCase().split('');
@@ -174,26 +187,39 @@ export const PasswordGen: React.FunctionComponent = () => {
 		setPassword(PreferredPasswordNormal.join(''));
 	};
 
+	React.useEffect(() => {
+		generatePassword();
+	}, [DesiredPhrase, UppercaseLowercase, Numbers, NoModifyUppercase, SpecialCharacters]);
+
+	React.useEffect(() => {
+		fetch(`https://random-word-api.herokuapp.com/word?number=2`).then(response => response.json()).then(data => {
+			setDesiredPhrase(data.map((item:string) => (item.charAt(0).toUpperCase() + item.slice(1))).join(''));
+		});
+	}, []);
+
 	return (
 		<React.Fragment>
 			<h1>Password Generator</h1>
 			<h2>Instructions</h2>
 			<p>
-				Easy-to-remember password. Type your desired password phrase, or leave it blank and click <Fluent.PrimaryButton primary onClick={ev => generatePassword()}>Generate</Fluent.PrimaryButton> button.
+				Easy-to-remember password. Type your desired password phrase, or leave it blank to generate 2-word randoms and click <Fluent.PrimaryButton primary onClick={generatePassword}>Generate</Fluent.PrimaryButton> button to scramble characters.
 			</p>
 			<h2>Options</h2>
-			<Fluent.Toggle id={tglUcaseLcase} label="Uppercase and lowercase" defaultChecked disabled inlineLabel onText="On" offText="Off" onChange={toggleUppercaseLowercase} />
-			<Fluent.Toggle id={tglNumbers} label="Numbers" defaultChecked inlineLabel onText="On" offText="Off" onChange={toggleNumbers} />
-			<Fluent.Toggle id={tglNoModifyUcase} label="Don't modify the uppercase" defaultChecked inlineLabel onText="On" offText="Off" onChange={toggleNoModifyUppercase} />
-			<Fluent.Toggle id={tglSpecialChars} label="Special characters" defaultChecked inlineLabel onText="On" offText="Off" onChange={toggleSpecialCharacters} />
-			<Fluent.TextField id={txtDesiredPhrase} label='Desired Phrase' onChange={(ev, newtext) => {
-				if (newtext !== undefined) {
-					setDesiredPhrase(newtext);
-					generatePassword();
-				}
-			}} />
+			<Fluent.Toggle id={tglUcaseLcase} label="Uppercase and lowercase" defaultChecked disabled onText="Enabled" offText="Disabled" onChange={toggleUppercaseLowercase} />
+			<Fluent.Toggle id={tglNumbers} label="Numbers" defaultChecked onText="Enabled" offText="Disabled" onChange={toggleNumbers} />
+			<Fluent.Toggle id={tglNoModifyUcase} label="Don't modify the uppercase" defaultChecked onText="Enabled" offText="Disabled" onChange={toggleNoModifyUppercase} />
+			<Fluent.Toggle id={tglSpecialChars} label="Special characters" defaultChecked onText="Enabled" offText="Disabled" onChange={toggleSpecialCharacters} />
+			<Fluent.TextField id={txtDesiredPhrase} label='Desired Phrase' styles={ { field: desiredPhraseStyle } } value={DesiredPhrase} onChange={(ev, newtext) => setDesiredPhrase(newtext as string) as any}>
+			</Fluent.TextField>
 			<p style={resultStyle}>
-				<Fluent.Text id={lblResult} style={generatedPasswordStyle}>{password}</Fluent.Text>
+				<Fluent.Text id={lblResult} style={generatedPasswordStyle} onClick={() => { Utility.copyToClipboard(lblResult); toggleIsCalloutVisible(); setTimeout(toggleIsCalloutVisible, 1000); }}>{password}</Fluent.Text>
+				{
+					isCalloutVisible && (
+						<Fluent.Callout target={`#${lblResult}`}>
+							<Fluent.Text>Password is copied to the clipboard.</Fluent.Text>
+						</Fluent.Callout>
+					)
+				}
 			</p>
 
 		</React.Fragment>

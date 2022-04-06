@@ -90,7 +90,7 @@ export const stackBody: Fluent.IStackStyles = {
 export const copyright: CSSProperties = {
   maxWidth: "100vw",
   width: "80vw",
-  margin: "10px auto",
+  margin: "10px auto 0 auto",
   padding: "10px",
   fontSize: 'smaller',
   fontStyle: 'italic'
