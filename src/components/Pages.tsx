@@ -15,11 +15,6 @@ export const Blogs: React.FunctionComponent = () => {
 	const breakText: React.CSSProperties = {
 		wordBreak: 'break-all'
 	};
-
-	/*
-	fetch(`https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}`)
-	.then(response => response.json()).then(data => setPosts(data), error => setError(error));
-	*/
 	React.useEffect(() => {
 		fetch(`https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}`).then(response => response.json()).then(data => {
 			setPosts(data);
