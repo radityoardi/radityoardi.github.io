@@ -22,6 +22,12 @@ export const Blogs: React.FunctionComponent = () => {
 		});
 	}, []);
 
+	const sanitizeContent = (input:string):string => {
+		const reImg = /(?!<img\s)(width=\"[0-9]+\"\sheight=\"[0-9]+\"|height=\"[0-9]+\"\swidth=\"[0-9]+\")(?<!\s)/gi;
+		const reIframe = /(?!<iframe\s)(width=\"[0-9]+\"\sheight=\"[0-9]+\"|height=\"[0-9]+\"\swidth=\"[0-9]+\")(?<!\s)/gi;
+		return input.replace(reImg, `width="100%"`).replace(reIframe, `width="100%"`);
+	};
+
 	return (
 		<React.Fragment>
 			<div>
@@ -36,7 +42,7 @@ export const Blogs: React.FunctionComponent = () => {
 							<h1><Fluent.Link key={uuidv4()} href={item.url}>{item.title}</Fluent.Link></h1>
 							<div>Written by {item.author.displayName} on {(new Date(item.published)).toDateString()}</div>
 							<Fluent.Text key={uuidv4()} styles={{ root: breakText }}>
-								<span dangerouslySetInnerHTML={{ __html: item.content }}></span>
+								<span dangerouslySetInnerHTML={{ __html: sanitizeContent(item.content) }}></span>
 							</Fluent.Text>
 							{
 								index < posts.items.length - 1 && (
