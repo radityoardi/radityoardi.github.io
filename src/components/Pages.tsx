@@ -90,6 +90,7 @@ export const Default: React.FunctionComponent = () => {
 			</p>
 			<p style={textStyle}>
 				This site got some tools I've written (click that top-right icon), it might be worth sharing. I used to <Fluent.Link href="https://otak-otak-it.blogspot.com">blog</Fluent.Link> but I'm falling away from it.
+				I'm adding my blog to this site too, for easier reading.
 			</p>
 		</React.Fragment>
 	);
