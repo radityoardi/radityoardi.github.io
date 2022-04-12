@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { DOMElement } from 'react';
 import * as Fluent from '@fluentui/react';
 import * as Hooks from '@fluentui/react-hooks';
 import * as Router from 'react-router-dom';
 import * as styles from '../App.styles';
 import * as Utility from './utils/Utility';
 import { v4 as uuidv4 } from 'uuid';
+import * as MSALBrowser from '@azure/msal-browser';
+import * as MSALReact from '@azure/msal-react';
+import * as Parser from "html-react-parser";
+import * as codeStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+
 
 export const Blogs: React.FunctionComponent = () => {
 
@@ -23,9 +29,34 @@ export const Blogs: React.FunctionComponent = () => {
 	}, []);
 
 	const sanitizeContent = (input:string):string => {
-		const reImg = /(?!<img\s)(width=\"[0-9]+\"\sheight=\"[0-9]+\"|height=\"[0-9]+\"\swidth=\"[0-9]+\")(?<!\s)/gi;
-		const reIframe = /(?!<iframe\s)(width=\"[0-9]+\"\sheight=\"[0-9]+\"|height=\"[0-9]+\"\swidth=\"[0-9]+\")(?<!\s)/gi;
+		const reImg = /(?!<img\s)(width="[0-9]+"\sheight="[0-9]+"|height="[0-9]+"\swidth="[0-9]+")(?<!\s)/gi;
+		const reIframe = /(?!<iframe\s)(width="[0-9]+"\sheight="[0-9]+"|height="[0-9]+"\swidth="[0-9]+")(?<!\s)/gi;
 		return input.replace(reImg, `width="100%"`).replace(reIframe, `width="100%"`);
+	};
+
+	const isCodeElement = (node:any) => {
+		return (
+			node.type == "tag" && node.name == "pre" &&
+			node.children.length > 0 && node.children[0].type == "tag" && node.children[0].name == "code" &&
+			node.children[0].children.length > 0 && node.children[0].children[0].type == "text"
+		);
+	};
+
+	const parserOptions: Parser.HTMLReactParserOptions = {
+		replace: (node:any): JSX.Element | undefined => {
+			if (isCodeElement(node)) {
+				return (
+					<React.Fragment>
+						<SyntaxHighlighter language={node.children[0].attribs.style} style={codeStyles.dracula}>
+							{node.children[0].children[0].data}
+						</SyntaxHighlighter>
+					</React.Fragment>
+				);
+			}
+			else if (node.type == "tag" && node.name === "a" && node.children.length > 0 && node.children[0].type == "text") {
+				return (<Fluent.Link href={node.attribs.href}>{node.children[0].data}</Fluent.Link>);
+			}
+		}
 	};
 
 	return (
@@ -42,7 +73,7 @@ export const Blogs: React.FunctionComponent = () => {
 							<h1><Fluent.Link key={uuidv4()} href={item.url}>{item.title}</Fluent.Link></h1>
 							<div>Written by {item.author.displayName} on {(new Date(item.published)).toDateString()}</div>
 							<Fluent.Text key={uuidv4()} styles={{ root: breakText }}>
-								<span dangerouslySetInnerHTML={{ __html: sanitizeContent(item.content) }}></span>
+							{ Parser.default(item.content, parserOptions) }
 							</Fluent.Text>
 							{
 								index < posts.items.length - 1 && (
@@ -90,6 +121,7 @@ export const Default: React.FunctionComponent = () => {
 			</p>
 			<p style={textStyle}>
 				This site got some tools I've written (click that top-right icon), it might be worth sharing. I used to <Fluent.Link href="https://otak-otak-it.blogspot.com">blog</Fluent.Link> but I'm falling away from it.
+				Nonetheless, I retrieved my blog too <Fluent.Link href="/#/blogs">here</Fluent.Link> for easier access.
 				I'm adding my blog to this site too, for easier reading.
 			</p>
 		</React.Fragment>
@@ -209,7 +241,7 @@ export const PasswordGen: React.FunctionComponent = () => {
 			<h1>Password Generator</h1>
 			<h2>Instructions</h2>
 			<p>
-				Easy-to-remember password. Type your desired password phrase, or leave it blank to generate 2-word randoms and click <Fluent.PrimaryButton primary onClick={generatePassword}>Generate</Fluent.PrimaryButton> button to scramble characters.
+				Easy-to-remember password. Type your desired password phrase, or leave it blank to generate 2-word randoms and click the button to scramble characters.
 			</p>
 			<h2>Options</h2>
 			<Fluent.Toggle id={tglUcaseLcase} label="Uppercase and lowercase" defaultChecked disabled onText="Enabled" offText="Disabled" onChange={toggleUppercaseLowercase} />
@@ -218,7 +250,9 @@ export const PasswordGen: React.FunctionComponent = () => {
 			<Fluent.Toggle id={tglSpecialChars} label="Special characters" defaultChecked onText="Enabled" offText="Disabled" onChange={toggleSpecialCharacters} />
 			<Fluent.TextField id={txtDesiredPhrase} label='Desired Phrase' styles={ { field: desiredPhraseStyle } } value={DesiredPhrase} onChange={(ev, newtext) => setDesiredPhrase(newtext as string) as any}>
 			</Fluent.TextField>
+			
 			<p style={resultStyle}>
+				
 				<Fluent.Text id={lblResult} style={generatedPasswordStyle} onClick={() => { Utility.copyToClipboard(lblResult); toggleIsCalloutVisible(); setTimeout(toggleIsCalloutVisible, 1000); }}>{password}</Fluent.Text>
 				{
 					isCalloutVisible && (
@@ -227,8 +261,48 @@ export const PasswordGen: React.FunctionComponent = () => {
 						</Fluent.Callout>
 					)
 				}
+				<Fluent.IconButton primary onClick={generatePassword} iconProps={{ iconName: "Refresh" }}></Fluent.IconButton>
 			</p>
 
+		</React.Fragment>
+	);
+};
+
+export const PrivacyPolicy: React.FunctionComponent = () => {
+	return (
+		<React.Fragment>
+			This is privacy policy
+		</React.Fragment>
+	);
+};
+
+export const TermsOfService: React.FunctionComponent = () => {
+	return (
+		<React.Fragment>
+			This is terms of service
+		</React.Fragment>
+	);
+};
+
+export const O365: React.FunctionComponent = () => {
+	return (
+		<React.Fragment>
+			<MSALReact.UnauthenticatedTemplate>
+				You have not signed in to Office 365.
+				<Experimental />
+			</MSALReact.UnauthenticatedTemplate>
+			<MSALReact.AuthenticatedTemplate>
+				You're signed in.
+				<Experimental />
+			</MSALReact.AuthenticatedTemplate>
+		</React.Fragment>
+	);
+};
+
+export const Experimental: React.FunctionComponent = () => {
+	return (
+		<React.Fragment>
+			This is just an experiment.
 		</React.Fragment>
 	);
 };

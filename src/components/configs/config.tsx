@@ -1,50 +1,147 @@
 import React from 'react';
+import * as Fluent from '@fluentui/react';
 import * as Router from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { List } from 'linqts';
-
+import * as MSALBrowser from '@azure/msal-browser';
+import * as MSALReact from '@azure/msal-react';
+import * as Types from '../Types';
 import * as Pages from '../Pages';
 
 export interface IAppMenu {
+	type?: Types.CommandType;
 	pageTitle?: string;
-  iconName: string;
-  label: string;
-  componentName?: string;
-  key?: string;
-  execute?: Function;
+	iconName?: string;
+	label?: string;
+	componentName?: string;
+	key: string;
+	onClick?: (event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement | HTMLDivElement | HTMLSpanElement | Fluent.BaseButton | Fluent.Button> | undefined, msalInstance: MSALReact.IMsalContext) => void;
 	url?: Router.To;
-	component?: JSX.Element;
+	pageComponent?: JSX.Element;
 	submenu?: List<IAppMenu>;
+	displayMode?: Types.DisplayMode;
 }
 
 export const config = {
 	title: "Rdz!",
+	rightPanelTitle: "Quick Links",
+	msal: {
+		msalConfig: {
+			auth: {
+				clientId: process.env.REACT_APP_AZUREAD_APP_CLIENTID,
+				authority: "https://login.microsoftonline.com/common",
+				redirectUri: process.env.REACT_APP_AZUREAD_APP_REDIRECTURL
+			},
+			cache: {
+				cacheLocation: "sessionStorage", // This configures where your cache will be stored
+				storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+			},
+			system: {
+				loggerOptions: {
+					loggerCallback: (level: any, message: any, containsPii: any) => {
+						if (containsPii) {
+							return;
+						}
+						switch (level) {
+							case MSALBrowser.LogLevel.Error:
+								console.error(message);
+								return;
+							case MSALBrowser.LogLevel.Info:
+								console.info(message);
+								return;
+							case MSALBrowser.LogLevel.Verbose:
+								console.debug(message);
+								return;
+							case MSALBrowser.LogLevel.Warning:
+								console.warn(message);
+								return;
+						}
+					}
+				}
+			}
+		} as MSALBrowser.Configuration,
+		loginRequest: {
+			scopes: ["User.Read"]
+	}
+	},
 	appIcons: new List<IAppMenu>([
 		{
-			iconName: "HomeSolid",
-			label: "Home",
-			componentName: "Default",
-			url: "/",
+			type: Types.CommandType.Heading,
 			key: uuidv4(),
-			component: <Pages.Default />
+			submenu: new List<IAppMenu>([
+				{
+					iconName: "HomeSolid",
+					label: "Home",
+					url: "/",
+					key: uuidv4(),
+					pageComponent: <Pages.Default />
+				},
+				{
+					pageTitle: "Password Generator",
+					iconName: "PasswordField",
+					label: "Password Generator",
+					url: "/password-generator",
+					key: uuidv4(),
+					pageComponent: <Pages.PasswordGen />
+				},
+				{
+					pageTitle: "Blogs",
+					iconName: "blog",
+					label: "Blogs",
+					url: "/blogs",
+					key: uuidv4(),
+					pageComponent: <Pages.Blogs />
+				},
+			])
 		},
 		{
-			pageTitle: "Password Generator",
-			iconName: "PasswordField",
-			label: "Password Generator",
-			componentName: "PasswordGen",
-			url: "/password-generator",
+			label: "Office 365",
+			type: Types.CommandType.Heading,
 			key: uuidv4(),
-			component: <Pages.PasswordGen />
+			submenu: new List<IAppMenu>([
+				{
+					pageTitle: "Office 365",
+					iconName: "WaffleOffice365",
+					label: "Office",
+					url: "/O365",
+					key: uuidv4(),
+					pageComponent: <Pages.O365 />,
+					displayMode: Types.DisplayMode.AuthenticatedOnly
+				},
+				{
+					pageTitle: "Office 365",
+					iconName: "Signin",
+					label: "Login",
+					onClick: (ev, msal) => {
+						msal.instance.loginRedirect(config.msal.loginRequest).catch(e => console.log(e));
+					},
+					key: uuidv4(),
+					displayMode: Types.DisplayMode.UnauthenticatedOnly
+				}
+			])
 		},
 		{
-			pageTitle: "Blogs",
-			iconName: "blog",
-			label: "Blogs",
-			componentName: "Blogs",
-			url: "/blogs",
+			label: "About",
+			type: Types.CommandType.Heading,
 			key: uuidv4(),
-			component: <Pages.Blogs />
+			submenu: new List<IAppMenu>([
+				{
+					pageTitle: "Privacy Policy",
+					iconName: "page",
+					label: "Privacy Policy",
+					url: "/privacy-policy",
+					key: uuidv4(),
+					pageComponent: <Pages.PrivacyPolicy />
+				},
+				{
+					pageTitle: "Terms of Service",
+					iconName: "page",
+					label: "Terms of Service",
+					url: "/terms-of-service",
+					key: uuidv4(),
+					pageComponent: <Pages.TermsOfService />
+				}
+			])
 		}
 	])
 };

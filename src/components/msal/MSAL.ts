@@ -8,8 +8,8 @@ import * as msal from '@azure/msal-browser';
  export const msalConfig = {
 	auth: {
 			clientId: "",
-			authority: "",
-			redirectUri: "http://localhost:3000/",
+			authority: "https://login.microsoftonline.com/common",
+			redirectUri: "https://",
 	},
 	cache: {
 			cacheLocation: "sessionStorage", // This configures where your cache will be stored

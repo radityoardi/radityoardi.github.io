@@ -6,17 +6,26 @@ import * as Configs from './components/configs/config';
 import * as Router from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Controls from './components/Controls';
+import * as MSALBrowser from '@azure/msal-browser';
+import * as MSALReact from '@azure/msal-react';
+import * as Types from './components/Types';
 
 const App: React.FunctionComponent = () => {
   ///////////////////////////// Variables
   const [isOpen, { setTrue: openPanel, setFalse: closePanel }] = Hooks.useBoolean(false);
   const location = Router.useLocation();
+  const isAuthenticated = MSALReact.useIsAuthenticated();
+  const msalInstance = MSALReact.useMsal();
+  const appVersion = process.env.REACT_APP_VERSION;
 
   ///////////////////////////// FUNCTIONS
   React.useEffect(() => {
-    //console.log(`currentLocation`, location);
+    console.log(`currentLocation`, isAuthenticated);
   }, [location])
 
+  const isDisplayed = (displayMode?: Types.DisplayMode): boolean => {
+    return (displayMode === undefined || (isAuthenticated && displayMode == Types.DisplayMode.AuthenticatedOnly) || (!isAuthenticated && displayMode == Types.DisplayMode.UnauthenticatedOnly));
+  };
 
   ///////////////////////////// App
   return (
@@ -24,25 +33,63 @@ const App: React.FunctionComponent = () => {
       <div style={styles.divBody}>
         <Fluent.Stack horizontal styles={styles.appBar} tokens={{ childrenGap: 0, padding: 0 }}>
           <Fluent.Stack.Item grow styles={styles.titleBar}>
+            <Fluent.Image src={"ToonRadityoCircle.png"} imageFit={Fluent.ImageFit.contain} styles={styles.siteIcon} alt={Configs.config.title} />
             <Fluent.Link style={styles.titleBlock} href={"/"}>
               {Configs.config.title}
             </Fluent.Link>
           </Fluent.Stack.Item>
           <Fluent.Stack.Item disableShrink styles={styles.appLauncher}>
-            <Fluent.IconButton iconProps={{ iconName: "AppIconDefaultList", style: styles.appLauncherIcon }} title="App Launcher" ariaLabel="App Launcher" style={styles.appLauncherButton} onClick={event => {
+            <Fluent.IconButton iconProps={{ iconName: "AppIconDefaultList" }} title="App Launcher" ariaLabel="App Launcher" styles={styles.appLauncherButton} onClick={event => {
               openPanel();
               event.stopPropagation();
             }} />
-            <Fluent.Panel headerText="Apps" type={Fluent.PanelType.smallFixedFar} isBlocking={false} isOpen={isOpen} onDismiss={closePanel} closeButtonAriaLabel="Close">
-              <Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }}>
+            <Fluent.Panel headerText={Configs.config.rightPanelTitle} type={Fluent.PanelType.smallFixedFar} isBlocking={false} isOpen={isOpen} onDismiss={closePanel} closeButtonAriaLabel="Close">
+              <Fluent.Stack tokens={{ childrenGap: 20 }}>
                 {
-                  Configs.config.appIcons.ToArray().map((item: Configs.IAppMenu) => (
-                    <Fluent.StackItem grow disableShrink style={styles.appBlock} key={uuidv4()}>
-                      <Controls.RouterIconButton iconProps={{ iconName: item.iconName, style: styles.appIcons }} title={item.label} ariaLabel={item.label} style={styles.appLauncherButton} to={(item.url as Router.To)} onClick={closePanel} />
-                    </Fluent.StackItem>
+                  Configs.config.appIcons.Where(x => isDisplayed(x?.displayMode)).ToArray().map((heading: Configs.IAppMenu) => (
+                    <Fluent.Stack.Item>
+                      {
+                        heading.label && (
+                          <Fluent.Text variant={'mediumPlus'} nowrap block>{heading.label}</Fluent.Text>
+                        )
+                      }
+                      <Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }}>
+                        {
+                          heading.submenu?.Where(x => isDisplayed(x?.displayMode)).ToArray().map((item: Configs.IAppMenu) => (
+                            <Fluent.StackItem grow disableShrink styles={styles.appBlock} key={uuidv4()}>
+                              {
+                                item.url === undefined && (
+                                  <React.Fragment>
+                                    <Fluent.IconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} onClick={ev => {
+                                      if (item.onClick != undefined) {
+                                        item.onClick(ev, msalInstance);
+                                      }
+                                      closePanel();
+                                    }} />
+                                    <Fluent.Text nowrap block variant={'small'} styles={styles.appLabel}>{item.label}</Fluent.Text>
+                                  </React.Fragment>
+                                )
+                              }
+                              {
+                                item.url !== undefined && (
+                                  <React.Fragment>
+                                    <Controls.RouterIconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} to={(item.url as Router.To)} onClick={closePanel} />
+                                    <Fluent.Text nowrap block variant={'small'} styles={styles.appLabel}>{item.label}</Fluent.Text>
+                                  </React.Fragment>
+                                  
+                                )
+                              }
+                            </Fluent.StackItem>
+                          ))
+                        }
+                      </Fluent.Stack>
+
+                    </Fluent.Stack.Item>
+
                   ))
                 }
               </Fluent.Stack>
+
             </Fluent.Panel>
           </Fluent.Stack.Item>
         </Fluent.Stack>
@@ -52,14 +99,14 @@ const App: React.FunctionComponent = () => {
               <React.Suspense fallback={(<Fluent.ProgressIndicator label="Loading" description="Loading the page component..." />)}>
                 <Router.Routes>
                   {
-                    Configs.config.appIcons.Where(x => x?.component != undefined).ToArray().map((item: Configs.IAppMenu) => (<Router.Route key={uuidv4()} path={(item.url as string)} element={item.component} />))
+                    Configs.config.appIcons.ToArray().map((heading: Configs.IAppMenu) => (heading.submenu?.Where(x => x?.pageComponent != undefined).ToArray().map((item: Configs.IAppMenu) => (<Router.Route key={uuidv4()} path={(item.url as string)} element={item.pageComponent} />))))
                   }
                 </Router.Routes>
               </React.Suspense>
             </Fluent.Stack.Item>
           </Fluent.Stack>
           <div style={styles.copyright}>
-            Licensed under Ms-PL
+            Published under Ms-PL (version {appVersion})
           </div>
         </div>
       </div>

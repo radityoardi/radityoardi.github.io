@@ -6,12 +6,21 @@ import App from './App';
 import * as styles from './App.styles';
 import reportWebVitals from './reportWebVitals';
 import * as Router from 'react-router-dom';
+import * as MSALBrowser from '@azure/msal-browser';
+import * as MSALReact from '@azure/msal-react';
+import * as Configs from './components/configs/config';
+
+const msalInstance = new MSALBrowser.PublicClientApplication(Configs.config.msal.msalConfig);
+console.log(msalInstance);
+console.log(Configs.config.msal.msalConfig);
 
 ReactDOM.render(
   <React.StrictMode>
     <Fluent.ThemeProvider theme={styles.appTheme}>
       <Router.HashRouter>
-        <App />
+        <MSALReact.MsalProvider instance={msalInstance}>
+          <App />
+        </MSALReact.MsalProvider>
       </Router.HashRouter>
     </Fluent.ThemeProvider>
   </React.StrictMode>,

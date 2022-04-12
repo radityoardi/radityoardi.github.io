@@ -26,9 +26,16 @@ export const appBar: Fluent.IStackStyles = {
     maxHeight: 50,
   }
 };
+export const siteIcon: Fluent.IImageStyles = {
+  root: {
+    height: 50
+  },
+  image: {
+  }
+};
 export const appLauncher: Fluent.IStackItemStyles = {
   root: {
-    backgroundColor: appTheme.palette.themeDarker,
+    backgroundColor: appTheme.palette.themePrimary,
     width: 50,
     maxWidth: 50,
     justifyContent: 'center',
@@ -50,30 +57,84 @@ export const titleBlock: CSSProperties = {
   margin: "auto 15px"
 };
 
-export const appLauncherButton: CSSProperties = {
+export const appLauncherButton: Fluent.IButtonStyles = {
+  root: {
+    height: '100%',
+    width: '100%',
+    borderRadius: 0
+  },
+  icon: {
+    color: appTheme.palette.white,
+    fontSize: 40,
+    height: 40,
+    lineHeight: 40
+  },
+  iconHovered: {
+    color: appTheme.palette.themeDark
+  }
+};
+const appIconDimension = 40;
+export const appIconButton: Fluent.IButtonStyles = {
+  root: {
+    height: 'calc(100% - 18px)',
+    width: '100%',
+    borderRadius: 15
+  },
+  icon: {
+    fontSize: appIconDimension,
+    height: appIconDimension,
+    lineHeight: appIconDimension
+  }
+};
+export const appLauncherButton2: CSSProperties = {
   height: '100%',
   width: '100%',
   borderRadius: 0
 };
 
 export const appLauncherIcon: CSSProperties = {
-  color: appTheme.palette.white,
   fontSize: 38
 };
 
 export const divContent: CSSProperties = {
 };
+
 const appBlockDimension = 65;
-export const appBlock: CSSProperties = {
+const textBlockHeight = 18;
+
+export const appBlock: Fluent.IStackStyles = {
+  root: {
+    width: appBlockDimension,
+    maxWidth: appBlockDimension,
+    height: appBlockDimension + textBlockHeight,
+    maxHeight: appBlockDimension + textBlockHeight,
+    justifyContent: 'center',
+    alignContent: 'center'
+  }
+};
+export const appLabel: Fluent.ITextStyles = {
+  root: {
+    textAlign: 'center'
+  }
+};
+export const appBlock2: CSSProperties = {
   width: appBlockDimension,
   maxWidth: appBlockDimension,
   height: appBlockDimension,
   maxHeight: appBlockDimension,
   justifyContent: 'center',
-  alignContent: 'center'
+  alignContent: 'center',
+  backgroundColor: appTheme.palette.themeLighter
 };
-export const appIcons: CSSProperties = {
-  fontSize: 40
+export const appIcons: Fluent.IButtonStyles = {
+  root: {
+    fontSize: 40,
+    backgroundColor: appTheme.palette.themeLighterAlt
+  }  
+};
+export const appIcons2: CSSProperties = {
+  fontSize: 40,
+  backgroundColor: appTheme.palette.themeLighterAlt
 };
 
 export const stackBody: Fluent.IStackStyles = {
