@@ -8,12 +8,14 @@ import * as MSALReact from '@azure/msal-react';
 import * as Types from '../Types';
 import * as Pages from '../Pages';
 
+
 export interface IAppMenu {
 	type?: Types.CommandType;
 	pageTitle?: string;
 	iconName?: string;
 	label?: string;
 	componentName?: string;
+	isRouterIndex?: boolean;
 	key: string;
 	onClick?: (event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement | HTMLDivElement | HTMLSpanElement | Fluent.BaseButton | Fluent.Button> | undefined, msalInstance: MSALReact.IMsalContext) => void;
 	url?: Router.To;
@@ -47,10 +49,10 @@ export const config = {
 								console.error(message);
 								return;
 							case MSALBrowser.LogLevel.Info:
-								console.info(message);
+								//console.info(message);
 								return;
 							case MSALBrowser.LogLevel.Verbose:
-								console.debug(message);
+								//console.debug(message);
 								return;
 							case MSALBrowser.LogLevel.Warning:
 								console.warn(message);
@@ -62,7 +64,7 @@ export const config = {
 		} as MSALBrowser.Configuration,
 		loginRequest: {
 			scopes: ["User.Read"]
-	}
+		}
 	},
 	appIcons: new List<IAppMenu>([
 		{
@@ -72,7 +74,7 @@ export const config = {
 				{
 					iconName: "HomeSolid",
 					label: "Home",
-					url: "/",
+					url: `/`,
 					key: uuidv4(),
 					pageComponent: <Pages.Default />
 				},
@@ -80,7 +82,7 @@ export const config = {
 					pageTitle: "Password Generator",
 					iconName: "PasswordField",
 					label: "Password Generator",
-					url: "/password-generator",
+					url: `/password-generator`,
 					key: uuidv4(),
 					pageComponent: <Pages.PasswordGen />
 				},
@@ -88,9 +90,21 @@ export const config = {
 					pageTitle: "Blogs",
 					iconName: "blog",
 					label: "Blogs",
-					url: "/blogs",
+					url: `/blogs`,
 					key: uuidv4(),
-					pageComponent: <Pages.Blogs />
+					pageComponent: <Pages.Blogs />,
+					submenu: new List<IAppMenu>([
+						{
+							isRouterIndex: true,
+							key: uuidv4(),
+							pageComponent: <Pages.BlogList />
+						},						
+						{
+							url: `:blogId`,
+							key: uuidv4(),
+							pageComponent: <Pages.BlogDetails />
+						}
+					])
 				},
 			])
 		},
@@ -103,7 +117,7 @@ export const config = {
 					pageTitle: "Office 365",
 					iconName: "WaffleOffice365",
 					label: "Office",
-					url: "/O365",
+					url: `/O365`,
 					key: uuidv4(),
 					pageComponent: <Pages.O365 />,
 					displayMode: Types.DisplayMode.AuthenticatedOnly
@@ -129,7 +143,7 @@ export const config = {
 					pageTitle: "Privacy Policy",
 					iconName: "page",
 					label: "Privacy Policy",
-					url: "/privacy-policy",
+					url: `/privacy-policy`,
 					key: uuidv4(),
 					pageComponent: <Pages.PrivacyPolicy />
 				},
@@ -137,7 +151,7 @@ export const config = {
 					pageTitle: "Terms of Service",
 					iconName: "page",
 					label: "Terms of Service",
-					url: "/terms-of-service",
+					url: `/terms-of-service`,
 					key: uuidv4(),
 					pageComponent: <Pages.TermsOfService />
 				}

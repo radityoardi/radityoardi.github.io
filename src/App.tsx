@@ -9,6 +9,8 @@ import * as Controls from './components/Controls';
 import * as MSALBrowser from '@azure/msal-browser';
 import * as MSALReact from '@azure/msal-react';
 import * as Types from './components/Types';
+import { List } from 'linqts';
+import * as Pages from './components/Pages';
 
 const App: React.FunctionComponent = () => {
   ///////////////////////////// Variables
@@ -17,14 +19,28 @@ const App: React.FunctionComponent = () => {
   const isAuthenticated = MSALReact.useIsAuthenticated();
   const msalInstance = MSALReact.useMsal();
   const appVersion = process.env.REACT_APP_VERSION;
-
+  
   ///////////////////////////// FUNCTIONS
+  const getComponentLabel = (url:string, menuitem?: List<Configs.IAppMenu>):string | undefined => {
+    if (menuitem !== undefined) {
+      const lookup = menuitem?.Where(x => (x?.type === undefined || x?.type === Types.CommandType.Normal) && x?.url === url);
+      if (lookup === undefined || lookup?.Count() === 0) {
+        const labels = menuitem?.Select((x:Configs.IAppMenu) => getComponentLabel(url, x.submenu));
+        return (labels !== undefined ? labels.First() : undefined);
+      } else {
+        return lookup?.Select(x => x.label).First();
+      }
+    }
+  };
   React.useEffect(() => {
-    console.log(`currentLocation`, isAuthenticated);
+    gtag(`event`, `page_view`, {
+      page_location: location.pathname,
+      page_title: getComponentLabel(location.pathname, Configs.config.appIcons)
+    });
   }, [location])
 
   const isDisplayed = (displayMode?: Types.DisplayMode): boolean => {
-    return (displayMode === undefined || (isAuthenticated && displayMode == Types.DisplayMode.AuthenticatedOnly) || (!isAuthenticated && displayMode == Types.DisplayMode.UnauthenticatedOnly));
+    return (displayMode === undefined || (isAuthenticated && displayMode === Types.DisplayMode.AuthenticatedOnly) || (!isAuthenticated && displayMode === Types.DisplayMode.UnauthenticatedOnly));
   };
 
   ///////////////////////////// App
@@ -34,7 +50,7 @@ const App: React.FunctionComponent = () => {
         <Fluent.Stack horizontal styles={styles.appBar} tokens={{ childrenGap: 0, padding: 0 }}>
           <Fluent.Stack.Item grow styles={styles.titleBar}>
             <Fluent.Image src={"ToonRadityoCircle.png"} imageFit={Fluent.ImageFit.contain} styles={styles.siteIcon} alt={Configs.config.title} />
-            <Fluent.Link style={styles.titleBlock} href={"/"}>
+            <Fluent.Link style={styles.titleBlock} href={"/"} underline={false}>
               {Configs.config.title}
             </Fluent.Link>
           </Fluent.Stack.Item>
@@ -47,7 +63,7 @@ const App: React.FunctionComponent = () => {
               <Fluent.Stack tokens={{ childrenGap: 20 }}>
                 {
                   Configs.config.appIcons.Where(x => isDisplayed(x?.displayMode)).ToArray().map((heading: Configs.IAppMenu) => (
-                    <Fluent.Stack.Item>
+                    <Fluent.Stack.Item key={uuidv4()}>
                       {
                         heading.label && (
                           <Fluent.Text variant={'mediumPlus'} nowrap block>{heading.label}</Fluent.Text>
@@ -56,12 +72,12 @@ const App: React.FunctionComponent = () => {
                       <Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }}>
                         {
                           heading.submenu?.Where(x => isDisplayed(x?.displayMode)).ToArray().map((item: Configs.IAppMenu) => (
-                            <Fluent.StackItem grow disableShrink styles={styles.appBlock} key={uuidv4()}>
+                            <Fluent.StackItem grow disableShrink styles={styles.appBlock} key={`navigation-${item.key}`}>
                               {
                                 item.url === undefined && (
                                   <React.Fragment>
                                     <Fluent.IconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} onClick={ev => {
-                                      if (item.onClick != undefined) {
+                                      if (item.onClick !== undefined) {
                                         item.onClick(ev, msalInstance);
                                       }
                                       closePanel();
@@ -83,24 +99,32 @@ const App: React.FunctionComponent = () => {
                           ))
                         }
                       </Fluent.Stack>
-
                     </Fluent.Stack.Item>
-
                   ))
                 }
               </Fluent.Stack>
-
             </Fluent.Panel>
           </Fluent.Stack.Item>
         </Fluent.Stack>
         <div style={styles.divContent}>
-          <Fluent.Stack styles={styles.stackBody}>
+          <Fluent.Stack styles={styles.stackBody} className={`stack-body`}>
             <Fluent.Stack.Item styles={styles.stackItemBody}>
               <React.Suspense fallback={(<Fluent.ProgressIndicator label="Loading" description="Loading the page component..." />)}>
                 <Router.Routes>
                   {
-                    Configs.config.appIcons.ToArray().map((heading: Configs.IAppMenu) => (heading.submenu?.Where(x => x?.pageComponent != undefined).ToArray().map((item: Configs.IAppMenu) => (<Router.Route key={uuidv4()} path={(item.url as string)} element={item.pageComponent} />))))
+                    Configs.config.appIcons.ToArray().map((heading: Configs.IAppMenu) => (
+                      heading.submenu?.Where(x => x?.pageComponent !== undefined).ToArray().map((item: Configs.IAppMenu) => (
+                        <Router.Route key={`routerl1-${item.key}`} path={(item.url as string)} element={item.pageComponent}>
+                          {
+                            item.submenu?.ToArray().map((itemL2:Configs.IAppMenu) => (
+                              <Router.Route key={`routerl2-${itemL2.key}`} path={(itemL2.url as string)} index={itemL2.isRouterIndex} element={itemL2.pageComponent} />
+                            ))
+                          }
+                        </Router.Route>
+                      ))
+                    ))
                   }
+                  <Router.Route key={uuidv4()} path={"*"} element={<Pages.NotFound404 />} />
                 </Router.Routes>
               </React.Suspense>
             </Fluent.Stack.Item>

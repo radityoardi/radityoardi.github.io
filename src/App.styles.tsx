@@ -129,7 +129,7 @@ export const appBlock2: CSSProperties = {
 export const appIcons: Fluent.IButtonStyles = {
   root: {
     fontSize: 40,
-    backgroundColor: appTheme.palette.themeLighterAlt
+    backgroundColor: appTheme.palette.whiteTranslucent40
   }  
 };
 export const appIcons2: CSSProperties = {
@@ -139,12 +139,7 @@ export const appIcons2: CSSProperties = {
 
 export const stackBody: Fluent.IStackStyles = {
   root: {
-    backgroundColor: appTheme.palette.white,
-    maxWidth: "100vw",
-    width: "80vw",
-    margin: "4vh auto 10px auto",
-    padding: "20px",
-    borderRadius: "5px"
+    backgroundColor: appTheme.palette.white
   }
 };
 
@@ -160,5 +155,20 @@ export const copyright: CSSProperties = {
 export const stackItemBody: Fluent.IStackItemStyles = {
   root: {
     minHeight: "400px"
+  }
+};
+
+export const blogItem: Fluent.IStackItemStyles = {
+  root: {
+    backgroundColor: appTheme.palette.neutralLight
+  }
+};
+
+export const blogImage: Fluent.IImageStyles = {
+  image: {
+
+  },
+  root: {
+    borderColor: appTheme.palette.themeDark
   }
 };

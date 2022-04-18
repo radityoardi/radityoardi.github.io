@@ -1,0 +1,10 @@
+# Hello, World!
+
+This is not your typical default "Hello, World!" application.
+
+I'm Radityo. I'm a technical consultant focusing on the application development world, currently living in the bustling city of Singapore, the city that never sleeps (literally). I've been getting my hands dirty on mostly Microsoft technology such as C#, SharePoint (not long after it was born), PowerShell hardcore, and now toying with Office 365, Power Apps & Automate, and lastly sharpening my skills on TypeScript and React.  
+Though Machine Learning and AI are not really my main skills, but I'm leaning towards that.
+
+In my free time, I love to cook (though I know I'm a terrible chef), love to "fish" sunbirds and yellow-vented bulbul to come to my corridor in a bid to grab their pics, and of course...eat.
+
+This site got some tools I've written (click that top-right icon), it might be worth sharing. I used to blog but I'm falling away from it. Nonetheless, I retrieved my blog too here for easier access. I'm adding my blog to this site too, for easier reading.
