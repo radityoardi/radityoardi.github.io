@@ -13,18 +13,18 @@ export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconB
   function ButtonWithRef(
     { onClick, reloadDocument, replace = false, state, target, to, ...rest },
     ref) {
-      let href = Router.useHref(to);
-      let internalOnClick = Router.useLinkClickHandler(to, { replace, state, target });
-      function handleClick(
-        event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
-      ) {
-        if (onClick) onClick(event);
-        if (!event.defaultPrevented && !reloadDocument) {
-          internalOnClick(event);
-        }
+    let href = Router.useHref(to);
+    let internalOnClick = Router.useLinkClickHandler(to, { replace, state, target });;
+    function handleClick(
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+    ) {
+      if (onClick) onClick(event);
+      if (!event.defaultPrevented && !reloadDocument) {
+        internalOnClick(event);
       }
-  
-      return (
+    }
+
+    return (
       <Fluent.IconButton
         {...rest}
         href={href}
@@ -32,7 +32,7 @@ export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconB
         ref={ref}
         target={target}
       />
-      );
+    );
   }
 );
 
@@ -40,18 +40,18 @@ export const RouterLink = React.forwardRef<HTMLElement, Types.ILinkProps>(
   function LinkWithRef(
     { onClick, reloadDocument, replace = false, state, target, to, ...rest },
     ref) {
-      let href = Router.useHref(to);
-      let internalOnClick = Router.useLinkClickHandler(to, { replace, state, target });
-      function handleClick(
-        event: any
-      ) {
-        if (onClick) onClick(event);
-        if (!event.defaultPrevented && !reloadDocument) {
-          internalOnClick(event);
-        }
+    let href = Router.useHref(to);
+    let internalOnClick = Router.useLinkClickHandler(to, { replace, state, target });
+    function handleClick(
+      event: any
+    ) {
+      if (onClick) onClick(event);
+      if (!event.defaultPrevented && !reloadDocument) {
+        internalOnClick(event);
       }
-  
-      return (
+    }
+
+    return (
       <Fluent.Link
         {...rest}
         href={href}
@@ -59,31 +59,31 @@ export const RouterLink = React.forwardRef<HTMLElement, Types.ILinkProps>(
         ref={ref}
         target={target}
       />
-      );
+    );
   }
 );
 
 export const RouterDocumentCard = React.forwardRef<Fluent.IDocumentCard, Types.IDocumentCardProps>(
   function LinkWithRef(
     { onClick, reloadDocument, replace = false, state, to, ...rest }, ref) {
-      let href = Router.useHref(to);
-      let internalOnClick = Router.useLinkClickHandler(to, { replace, state });
-      function handleClick(
-        event: any
-      ) {
-        if (onClick) onClick(event);
-        if (!event.defaultPrevented && !reloadDocument) {
-          internalOnClick(event);
-        }
+    let href = Router.useHref(to);
+    let internalOnClick = Router.useLinkClickHandler(to, { replace, state });
+    function handleClick(
+      event: any
+    ) {
+      if (onClick) onClick(event);
+      if (!event.defaultPrevented && !reloadDocument) {
+        internalOnClick(event);
       }
-  
-      return (
+    }
+
+    return (
       <Fluent.DocumentCard
         {...rest}
         onClickHref={href}
         onClick={handleClick}
       />
-      );
+    );
   }
 );
 
@@ -100,13 +100,13 @@ export const CodeBlock = React.forwardRef<SyntaxHighlighter, SyntaxHighlighterPr
           toggleIsCalloutVisible();
           setTimeout(toggleIsCalloutVisible, 1000);
         }} />
-				{
-					isCalloutVisible && targetControlId && (
-						<Fluent.Callout target={`#${targetControlId}`} key={uuidv4()}>
-							<Fluent.Text>The code below is now in the clipboard.</Fluent.Text>
-						</Fluent.Callout>
-					)
-				}
+        {
+          isCalloutVisible && targetControlId && (
+            <Fluent.Callout target={`#${targetControlId}`} key={uuidv4()}>
+              <Fluent.Text>The code below is now in the clipboard.</Fluent.Text>
+            </Fluent.Callout>
+          )
+        }
         <SyntaxHighlighter {...rest} ref={ref}>
         </SyntaxHighlighter>
       </React.Fragment>
@@ -114,10 +114,10 @@ export const CodeBlock = React.forwardRef<SyntaxHighlighter, SyntaxHighlighterPr
   }
 );
 
-export const RdzMarkdown: React.FunctionComponent<{require:any}> = ({children,require}) => {
+export const RdzMarkdown: React.FunctionComponent<{ require: any, gfm?: boolean }> = ({ children, require, gfm }) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [markdown, setMarkdown] = React.useState<any>();
-  
+
   React.useEffect(() => {
     setIsLoading(true);
     fetch(require).then(response => response.text()).then(text => {
@@ -126,19 +126,19 @@ export const RdzMarkdown: React.FunctionComponent<{require:any}> = ({children,re
   }, []);
 
   return (
-		<React.Fragment>
+    <React.Fragment>
       {
-				isLoading && (
-					<Fluent.ProgressIndicator label="Fetching" description="Fetching the markdown content..." />
-				)
-			}
-      {
-        !isLoading && (
-          <Markdown value={markdown} />
+        isLoading && (
+          <Fluent.ProgressIndicator label="Fetching" description="Fetching the markdown content..." />
         )
       }
-      
-		</React.Fragment>
-	);
+      {
+        !isLoading && (
+          <Markdown value={markdown} gfm={(gfm === undefined ? true : gfm)} />
+        )
+      }
+
+    </React.Fragment>
+  );
 };
 

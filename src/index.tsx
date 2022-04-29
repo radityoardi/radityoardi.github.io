@@ -11,7 +11,21 @@ import * as MSALReact from '@azure/msal-react';
 import * as Configs from './components/configs/config';
 
 const msalInstance = new MSALBrowser.PublicClientApplication(Configs.config.msal.msalConfig);
-
+/*
+ReactDOM.render(
+  <React.StrictMode>
+    <Fluent.ThemeProvider theme={styles.appTheme}>
+      <Router.BrowserRouter basename={process.env.PUBLIC_URL}>
+        <MSALReact.MsalProvider instance={msalInstance}>
+          <App />
+        </MSALReact.MsalProvider>
+      </Router.BrowserRouter>
+    </Fluent.ThemeProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+*/
+/*
 ReactDOM.render(
   <React.StrictMode>
     <Fluent.ThemeProvider theme={styles.appTheme}>
@@ -24,7 +38,19 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 );
-
+*/
+ReactDOM.render(
+  <React.StrictMode>
+    <Fluent.ThemeProvider theme={styles.appTheme}>
+      <Router.HashRouter>
+        <MSALReact.MsalProvider instance={msalInstance}>
+          <App />
+        </MSALReact.MsalProvider>
+      </Router.HashRouter>
+    </Fluent.ThemeProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals

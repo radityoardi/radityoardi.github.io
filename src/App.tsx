@@ -33,9 +33,16 @@ const App: React.FunctionComponent = () => {
     }
   };
   React.useEffect(() => {
+    const pageTitle = getComponentLabel(location.pathname, Configs.config.appIcons);
+    console.log(location, pageTitle);
+    if (location.pathname !== `/`) {
+      document.title = `${Configs.config.title} - ${pageTitle}`;
+    } else {
+      document.title = `${Configs.config.title}`;
+    }
     gtag(`event`, `page_view`, {
       page_location: location.pathname,
-      page_title: getComponentLabel(location.pathname, Configs.config.appIcons)
+      page_title: pageTitle
     });
   }, [location])
 
@@ -50,9 +57,9 @@ const App: React.FunctionComponent = () => {
         <Fluent.Stack horizontal styles={styles.appBar} tokens={{ childrenGap: 0, padding: 0 }}>
           <Fluent.Stack.Item grow styles={styles.titleBar}>
             <Fluent.Image src={"ToonRadityoCircle.png"} imageFit={Fluent.ImageFit.contain} styles={styles.siteIcon} alt={Configs.config.title} />
-            <Fluent.Link style={styles.titleBlock} href={"/"} underline={false}>
+            <Controls.RouterLink style={styles.titleBlock} to={"/"} underline={false} className={`sitetitle`}>
               {Configs.config.title}
-            </Fluent.Link>
+            </Controls.RouterLink>
           </Fluent.Stack.Item>
           <Fluent.Stack.Item disableShrink styles={styles.appLauncher}>
             <Fluent.IconButton iconProps={{ iconName: "AppIconDefaultList" }} title="App Launcher" ariaLabel="App Launcher" styles={styles.appLauncherButton} onClick={event => {

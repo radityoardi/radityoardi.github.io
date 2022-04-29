@@ -46,6 +46,7 @@ export const BlogList: React.FunctionComponent = () => {
 		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}${(pageToken ? `&pageToken=${pageToken}` : ``)}`;
 		fetch(fetchUrl).then(response => response.json()).then(data => {
 			setPosts(data);
+			console.log(data);
 		}).finally(() => setIsLoading(false));
 	};
 
@@ -60,7 +61,6 @@ export const BlogList: React.FunctionComponent = () => {
 		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts/search?key=${bloggerAPIKey}&q=${encodeURIComponent(newvalue)}`;
 		fetch(fetchUrl).then(response => response.json()).then(data => {
 			setPosts(data);
-			console.log(data);
 		}).finally(() => setIsLoading(false));
 	};
 
@@ -78,7 +78,12 @@ export const BlogList: React.FunctionComponent = () => {
 				{
 					!isLoading && posts && posts.items && posts.items.map((item: any) => (
 						<Fluent.Stack.Item grow key={`bloghead-${item.id}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
-							<Controls.RouterLink to={`/blogs/${item.id}`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
+							<Controls.RouterLink to={`/blogs/${item.id}`} className={`blogtitlelink`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
+							<Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }} className={`blogtags`}>
+								{
+									item.labels && item.labels.map((label:string) => <Fluent.Stack.Item className={`blogtag`} styles={styles.blogTag}>{label}</Fluent.Stack.Item>)
+								}
+							</Fluent.Stack>
 							{
 								firstImageUrl(item.content) && (
 									<Fluent.Image src={firstImageUrl(item.content)?.src} imageFit={Fluent.ImageFit.cover} height={150} styles={styles.blogImage} className={`blogimage`} />
@@ -214,9 +219,7 @@ export const NotFound404: React.FunctionComponent = () => {
 	];
 	const [randomGIF, setRandomGIF] = React.useState<string>();
 	React.useEffect(() => {
-		console.log(lostGIFs);
 		const random = Math.floor(Math.random() * lostGIFs.length);
-		console.log(random);
 		setRandomGIF(lostGIFs[random]);
 	}, []);
 	return (

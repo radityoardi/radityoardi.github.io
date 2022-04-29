@@ -6,14 +6,34 @@ import { generateTheme, IThemeInfo } from './components/utils/FluentThemeGenerat
 
 initializeIcons();
 
-export const appTheme = generateTheme({
-  primaryColor: "#9c329c", textColor: "#4a4948", backgroundColor: "#fafafa", partialTheme: {
-    defaultFontStyle: {
-      fontFamily: 'Overlock, Consolas',
-      fontWeight: 'Regular'
+const randomLightThemes = [
+  `#13C4A3`,
+  `#39A0ED`,
+  `#1B5299`,
+  `#713E5A`,
+  `#91CB3E`,
+  `#E0CA3C`,
+  `#EF6F6C`,
+];
+
+const randomDarkThemes = [] as string[];
+
+const randomLightThemeIndex = Math.floor(Math.random() * randomLightThemes.length);
+const randomDarkThemeIndex = Math.floor(Math.random() * randomDarkThemes.length);
+
+export const appTheme = (() => {
+  const randomDarkLight = Math.floor(Math.random() * 2);
+  const themeSpecific = randomDarkLight === 0 ? { primary: randomLightThemes[randomLightThemeIndex], textColor: "#333333", backgroundColor: "#ffffff" } : { primary: randomDarkThemes[randomDarkThemeIndex], textColor: "#ffffff", backgroundColor: "#333333" };
+  return generateTheme({
+    primaryColor: themeSpecific.primary, textColor: themeSpecific.textColor, backgroundColor: themeSpecific.backgroundColor, partialTheme: {
+      defaultFontStyle: {
+        fontFamily: 'Abel, Consolas',
+        fontWeight: 'Regular',
+        fontSize: '16px'
+      }
     }
-  }
-} as IThemeInfo);
+  } as IThemeInfo);
+})();
 
 export const divBody: CSSProperties = {
   minHeight: "100vh",
@@ -130,7 +150,7 @@ export const appIcons: Fluent.IButtonStyles = {
   root: {
     fontSize: 40,
     backgroundColor: appTheme.palette.whiteTranslucent40
-  }  
+  }
 };
 export const appIcons2: CSSProperties = {
   fontSize: 40,
@@ -170,5 +190,12 @@ export const blogImage: Fluent.IImageStyles = {
   },
   root: {
     borderColor: appTheme.palette.themeDark
+  }
+};
+
+export const blogTag: Fluent.IStackItemStyles = {
+  root: {
+    backgroundColor: appTheme.palette.themeDark,
+    color: appTheme.palette.themeLight
   }
 };

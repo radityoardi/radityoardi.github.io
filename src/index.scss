@@ -73,6 +73,9 @@ body::-webkit-scrollbar-button:vertical:start:increment,
     box-shadow: 10px 10px 40px 0px rgba(0,0,0,0.5);
     }
 }
+.sitetitle:hover {
+  text-decoration: none;
+}
 .stack-body {
   .notfound404 {
     border: 0;
@@ -95,9 +98,19 @@ body::-webkit-scrollbar-button:vertical:start:increment,
         border-radius: 5px;
         margin-bottom: 10px;
       }
-
+      .blogtitlelink {
+        text-decoration: none;
+      }
       .blogtitle {
         margin-block-start: 0;
+        margin-block-end: 0;
+      }
+      .blogtags {
+        padding-bottom: 20px;
+      }
+      .blogtag {
+        border-radius: 5px;
+        padding: 5px;
       }
     }
   }
