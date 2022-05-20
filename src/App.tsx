@@ -9,7 +9,6 @@ import * as Controls from './components/Controls';
 import * as MSALBrowser from '@azure/msal-browser';
 import * as MSALReact from '@azure/msal-react';
 import * as Types from './components/Types';
-import { List } from 'linqts';
 import * as Pages from './components/Pages';
 
 const App: React.FunctionComponent = () => {
@@ -19,41 +18,17 @@ const App: React.FunctionComponent = () => {
   const isAuthenticated = MSALReact.useIsAuthenticated();
   const msalInstance = MSALReact.useMsal();
   const appVersion = process.env.REACT_APP_VERSION;
-  
-  ///////////////////////////// FUNCTIONS
-  const getComponentLabel = (url:string, menuitem?: List<Configs.IAppMenu>):string | undefined => {
-    if (menuitem !== undefined) {
-      const lookup = menuitem?.Where(x => (x?.type === undefined || x?.type === Types.CommandType.Normal) && x?.url === url);
-      if (lookup === undefined || lookup?.Count() === 0) {
-        const labels = menuitem?.Select((x:Configs.IAppMenu) => getComponentLabel(url, x.submenu));
-        return (labels !== undefined ? labels.First() : undefined);
-      } else {
-        return lookup?.Select(x => x.label).First();
-      }
-    }
-  };
-  React.useEffect(() => {
-    const pageTitle = getComponentLabel(location.pathname, Configs.config.appIcons);
-    console.log(location, pageTitle);
-    if (location.pathname !== `/`) {
-      document.title = `${Configs.config.title} - ${pageTitle}`;
-    } else {
-      document.title = `${Configs.config.title}`;
-    }
-    gtag(`event`, `page_view`, {
-      page_location: location.pathname,
-      page_title: pageTitle
-    });
-  }, [location])
 
-  const isDisplayed = (displayMode?: Types.DisplayMode): boolean => {
+  ///////////////////////////// FUNCTIONS
+   const isDisplayed = (displayMode?: Types.DisplayMode): boolean => {
     return (displayMode === undefined || (isAuthenticated && displayMode === Types.DisplayMode.AuthenticatedOnly) || (!isAuthenticated && displayMode === Types.DisplayMode.UnauthenticatedOnly));
   };
 
   ///////////////////////////// App
   return (
     <React.Fragment>
-      <div style={styles.divBody}>
+      <Controls.GoogleAnalytics />
+      <Controls.StackWallpaper styles={styles.divBody}>
         <Fluent.Stack horizontal styles={styles.appBar} tokens={{ childrenGap: 0, padding: 0 }}>
           <Fluent.Stack.Item grow styles={styles.titleBar}>
             <Fluent.Image src={"ToonRadityoCircle.png"} imageFit={Fluent.ImageFit.contain} styles={styles.siteIcon} alt={Configs.config.title} />
@@ -99,7 +74,7 @@ const App: React.FunctionComponent = () => {
                                     <Controls.RouterIconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} to={(item.url as Router.To)} onClick={closePanel} />
                                     <Fluent.Text nowrap block variant={'small'} styles={styles.appLabel}>{item.label}</Fluent.Text>
                                   </React.Fragment>
-                                  
+
                                 )
                               }
                             </Fluent.StackItem>
@@ -123,7 +98,7 @@ const App: React.FunctionComponent = () => {
                       heading.submenu?.Where(x => x?.pageComponent !== undefined).ToArray().map((item: Configs.IAppMenu) => (
                         <Router.Route key={`routerl1-${item.key}`} path={(item.url as string)} element={item.pageComponent}>
                           {
-                            item.submenu?.ToArray().map((itemL2:Configs.IAppMenu) => (
+                            item.submenu?.ToArray().map((itemL2: Configs.IAppMenu) => (
                               <Router.Route key={`routerl2-${itemL2.key}`} path={(itemL2.url as string)} index={itemL2.isRouterIndex} element={itemL2.pageComponent} />
                             ))
                           }
@@ -140,7 +115,7 @@ const App: React.FunctionComponent = () => {
             Published under Ms-PL (version {appVersion})
           </div>
         </div>
-      </div>
+      </Controls.StackWallpaper>
     </React.Fragment>
   );
 };

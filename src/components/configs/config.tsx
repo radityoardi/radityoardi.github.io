@@ -27,6 +27,11 @@ export interface IAppMenu {
 export const config = {
 	title: "Rdz!",
 	rightPanelTitle: "Quick Links",
+	facebookFeature: {
+		Comments: {
+			numberOfComments: 5
+		}
+	},
 	msal: {
 		msalConfig: {
 			auth: {
@@ -100,7 +105,7 @@ export const config = {
 							pageComponent: <Pages.BlogList />
 						},						
 						{
-							url: `:blogId`,
+							url: `:blogId/:blogUrl`,
 							key: uuidv4(),
 							pageComponent: <Pages.BlogDetails />
 						}

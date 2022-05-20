@@ -1,3 +1,6 @@
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -7,10 +10,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 
   --scrollbar-border-thickness: 0px;
-  --scrollbar-width: 10px;
-  --scrollbar-height: 10px;
+  --scrollbar-width: 2px;
+  --scrollbar-height: 2px;
   --show-double-buttons: none;
-  --scrollbar-border-radius: 2px;
+  --scrollbar-border-radius: 1px;
 }
 
 code {
@@ -77,6 +80,11 @@ body::-webkit-scrollbar-button:vertical:start:increment,
   text-decoration: none;
 }
 .stack-body {
+  .rdzmd {
+    img {
+      max-width: 100%;
+    }
+  }
   .notfound404 {
     border: 0;
     width: 100%;

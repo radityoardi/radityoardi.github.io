@@ -7,7 +7,10 @@ import SyntaxHighlighter, { SyntaxHighlighterProps } from 'react-syntax-highligh
 import * as Hooks from '@fluentui/react-hooks';
 import { v4 as uuidv4 } from 'uuid';
 import Markdown from 'marked-react';
-
+import * as Cookie from 'typescript-cookie';
+import * as Helmet from 'react-helmet';
+import { List } from 'linqts';
+import * as Configs from './configs/config';
 
 export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconButtonProps>(
   function ButtonWithRef(
@@ -87,28 +90,56 @@ export const RouterDocumentCard = React.forwardRef<Fluent.IDocumentCard, Types.I
   }
 );
 
-export const CodeBlock = React.forwardRef<SyntaxHighlighter, SyntaxHighlighterProps>(
+export interface CodeBlockProps extends SyntaxHighlighterProps {
+  hidden?: boolean;
+  hiddenCodeText?: string;
+  hideCodeText?: string;
+  showCodeText?: string;
+  codeCopiedNotificationText?: string;
+  notificationTimeout?: number;
+  commandBarButtonHeight?: number | string;
+}
+
+export const CodeBlock = React.forwardRef<SyntaxHighlighter, CodeBlockProps>(
   function SynHighlighter({ ...rest }, ref) {
     const [isCalloutVisible, { toggle: toggleIsCalloutVisible }] = Hooks.useBoolean(false);
+    const [isCodeHidden, { toggle: toggleIsCodeHidden }] = Hooks.useBoolean(rest.hidden ?? true);
     const btnCopy = Hooks.useId('btnCopy');
     const [targetControlId, setTargetControlId] = React.useState<string>();
+    const defaultCommandBarButtonHeight = '40px';
+
     return (
       <React.Fragment>
-        <Fluent.IconButton iconProps={{ iconName: "Copy" }} id={btnCopy} key={uuidv4()} onClick={() => {
-          setTargetControlId(btnCopy);
-          navigator.clipboard.writeText(rest.children as string);
-          toggleIsCalloutVisible();
-          setTimeout(toggleIsCalloutVisible, 1000);
+        <Fluent.CommandBarButton text={isCodeHidden ? rest.showCodeText ?? `Show code` : rest.hideCodeText ?? `Hide code`} iconProps={{ iconName: isCodeHidden ? `RedEye` : `Hide` }} styles={ { root: { height: rest.commandBarButtonHeight ?? defaultCommandBarButtonHeight } } } key={uuidv4()} onClick={() => {
+          toggleIsCodeHidden();
         }} />
+        {
+          isCodeHidden && <Fluent.Separator>{ rest.hiddenCodeText ?? `collapsed code` }</Fluent.Separator>
+        }
+        {
+          !isCodeHidden && (
+            <Fluent.CommandBarButton text={`Copy to clipboard`} iconProps={{ iconName: "Copy" }} styles={ { root: { height: rest.commandBarButtonHeight ?? defaultCommandBarButtonHeight } } } id={btnCopy} key={uuidv4()} onClick={() => {
+              setTargetControlId(btnCopy);
+              navigator.clipboard.writeText(rest.children as string);
+              toggleIsCalloutVisible();
+              setTimeout(toggleIsCalloutVisible, rest.notificationTimeout ?? 1000);
+            }} />
+          )
+        }
         {
           isCalloutVisible && targetControlId && (
             <Fluent.Callout target={`#${targetControlId}`} key={uuidv4()}>
-              <Fluent.Text>The code below is now in the clipboard.</Fluent.Text>
+              <Fluent.Text>{rest.codeCopiedNotificationText ?? `The code below is now in the clipboard.`}</Fluent.Text>
             </Fluent.Callout>
           )
         }
-        <SyntaxHighlighter {...rest} ref={ref}>
-        </SyntaxHighlighter>
+        {
+          !isCodeHidden && (
+            <SyntaxHighlighter {...rest} ref={ref}>
+            </SyntaxHighlighter>
+          )
+        }
+        
       </React.Fragment>
     );
   }
@@ -134,7 +165,9 @@ export const RdzMarkdown: React.FunctionComponent<{ require: any, gfm?: boolean 
       }
       {
         !isLoading && (
-          <Markdown value={markdown} gfm={(gfm === undefined ? true : gfm)} />
+          <div className={`rdzmd`}>
+            <Markdown value={markdown} gfm={(gfm === undefined ? true : gfm)} />
+          </div>
         )
       }
 
@@ -142,3 +175,117 @@ export const RdzMarkdown: React.FunctionComponent<{ require: any, gfm?: boolean 
   );
 };
 
+
+export const FacebookComments: React.FunctionComponent<{ href?: string, numPosts?: number | string, width?: number | string }> = ({ href, numPosts, width }) => {
+  React.useEffect(() => {
+    const fb = (window as any).FB;
+    if (fb) {
+      fb.XFBML.parse();
+    }
+  }, []);
+  return (
+    <React.Fragment>
+      <div className="fb-comments" data-href={href} data-width={width} data-numposts={numPosts}></div>
+    </React.Fragment>
+  );
+};
+
+export const FacebookLikes: React.FunctionComponent<{ href?: string, width?: number | string }> = ({href, width}) => {
+  return (
+    <React.Fragment>
+      <div className="fb-like" data-href={href} data-width={width} data-layout="standard" data-action="like" data-size="large" data-share="true"></div>
+    </React.Fragment>
+  );
+};
+
+export const StackWallpaper: React.FunctionComponent<Fluent.IStackProps> = (props) => {
+  const pixabayAPIKey = process.env.REACT_APP_PIXABAYAPI_KEY;
+  const [imageWallpaper, setImageWallpaper] = React.useState<string>();
+  const cookieName = `background-image`;
+
+  const searchedKeywords = [`flowers`, `animals`, `nature`];
+  const randomIndex = Math.floor(Math.random() * searchedKeywords.length);
+  const pickedKeyword = searchedKeywords[randomIndex];
+
+  React.useEffect(() => {
+    const fetchUrl = `https://pixabay.com/api/?key=${pixabayAPIKey}&q=${pickedKeyword}&image_type=photo&order=latest&editors_choice=true`;
+
+    if (Cookie.getCookie(cookieName)) {
+      setImageWallpaper(Cookie.getCookie(cookieName));
+    } else {
+      fetch(fetchUrl).then(response => response.json()).then(data => {
+        const randomImages = Math.floor(Math.random() * data.hits.length);
+        const pickedImage = data.hits[randomImages];
+        setImageWallpaper(pickedImage.largeImageURL);
+        Cookie.setCookie(cookieName, pickedImage.largeImageURL, { expires: 3 });
+      });
+    }
+
+  }, []);
+
+  const stackStyles: Fluent.IStackStyles = {
+    root: {
+      background: `url('${imageWallpaper}') no-repeat center center fixed`,
+      backgroundSize: 'cover',
+      minHeight: `100vh`
+    }
+  };
+
+  return (
+    <Fluent.Stack {...props} styles={stackStyles}>
+    </Fluent.Stack>
+  );
+};
+
+export interface IGoogleAnalyticsProps {
+  pageTitle?: string;
+  pageUrl?: string;
+  eventName?: string;
+};
+
+export const GoogleAnalytics: React.FunctionComponent<IGoogleAnalyticsProps> = (props: IGoogleAnalyticsProps) => {
+  const location = Router.useLocation();
+  
+  const [pageTitle, setPageTitle] = React.useState<string>();
+
+  const getTitleFromConfigs = (url: string, menuitem?: List<Configs.IAppMenu>): string | undefined => {
+    if (menuitem !== undefined) {
+      const lookup = menuitem?.Where(x => (x?.type === undefined || x?.type === Types.CommandType.Normal) && x?.url === url);
+      if (lookup === undefined || lookup?.Count() === 0) {
+        const labels = menuitem?.Select((x: Configs.IAppMenu) => getTitleFromConfigs(url, x.submenu));
+        return (labels !== undefined ? labels.First() : undefined);
+      } else {
+        return lookup?.Select(x => x.label).First();
+      }
+    }
+  };
+
+
+  React.useEffect(() => {
+    let pt = props.pageTitle ?? getTitleFromConfigs(location.pathname, Configs.config.appIcons);
+
+    if (pt && location.pathname !== `/`) {
+      setPageTitle(`${Configs.config.title} - ${pt}`);
+    } else if (location.pathname === `/`) {
+      setPageTitle(`${Configs.config.title}`);
+    }
+  }, [location]);
+
+  React.useEffect(() => {
+    if (pageTitle) {
+      //send google analytics event
+      gtag(`event`, props.eventName ?? `page_view`, {
+        page_location: window.location.href,
+        page_title: pageTitle
+      });
+
+      //set window title
+      document.title = pageTitle;
+    }
+  }, [pageTitle]);
+
+	return (
+		<React.Fragment>
+		</React.Fragment>
+	);
+};

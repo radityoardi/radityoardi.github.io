@@ -23,21 +23,24 @@ const randomDarkThemeIndex = Math.floor(Math.random() * randomDarkThemes.length)
 
 export const appTheme = (() => {
   const randomDarkLight = Math.floor(Math.random() * 2);
-  const themeSpecific = randomDarkLight === 0 ? { primary: randomLightThemes[randomLightThemeIndex], textColor: "#333333", backgroundColor: "#ffffff" } : { primary: randomDarkThemes[randomDarkThemeIndex], textColor: "#ffffff", backgroundColor: "#333333" };
+  //const themeSpecific = randomDarkLight === 0 ? { primary: randomLightThemes[randomLightThemeIndex], textColor: "#333333", backgroundColor: "#ffffff" } : { primary: randomDarkThemes[randomDarkThemeIndex], textColor: "#ffffff", backgroundColor: "#333333" };
+  const themeSpecific = { primary: randomLightThemes[randomLightThemeIndex], textColor: "#333333", backgroundColor: "#ffffff" };
   return generateTheme({
     primaryColor: themeSpecific.primary, textColor: themeSpecific.textColor, backgroundColor: themeSpecific.backgroundColor, partialTheme: {
       defaultFontStyle: {
         fontFamily: 'Abel, Consolas',
         fontWeight: 'Regular',
-        fontSize: '16px'
+        fontSize: '20px'
       }
     }
   } as IThemeInfo);
 })();
 
-export const divBody: CSSProperties = {
-  minHeight: "100vh",
-  backgroundColor: appTheme.palette.themeLighter
+export const divBody: Fluent.IStackStyles = {
+  root: {
+    minHeight: "100vh",
+    backgroundColor: appTheme.palette.themeLighter
+  }
 };
 
 export const appBar: Fluent.IStackStyles = {
@@ -164,12 +167,15 @@ export const stackBody: Fluent.IStackStyles = {
 };
 
 export const copyright: CSSProperties = {
-  maxWidth: "100vw",
   width: "80vw",
   margin: "10px auto 0 auto",
-  padding: "10px",
+  padding: "5px",
   fontSize: 'smaller',
-  fontStyle: 'italic'
+  fontStyle: 'italic',
+  boxSizing: 'border-box',
+  borderRadius: '2px',
+  backgroundColor: appTheme.palette.white,
+  boxShadow: '10px 10px 40px 0px rgba(0,0,0,0.5)'
 };
 
 export const stackItemBody: Fluent.IStackItemStyles = {

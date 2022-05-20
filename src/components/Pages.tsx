@@ -9,7 +9,22 @@ import { v4 as uuidv4 } from 'uuid';
 import * as MSALReact from '@azure/msal-react';
 import * as Parser from "html-react-parser";
 import * as codeStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import * as Configs from './configs/config';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
+
+const fbBaseCommentHref = () => {
+	return document.location.origin !== process.env.REACT_APP_FBCOMMENT_BASEURL ? `${process.env.REACT_APP_FBCOMMENT_BASEURL}/${(new URL(document.location.href)).hash}` : document.location.href;
+};
+
+const convertFromPermalink = (fullUrl: string) => {
+	const parsedUrl = new URL(fullUrl);
+	return parsedUrl.pathname.replaceAll(`/`, `_`);
+};
+
+const convertToPermalink = (partialUrl: string) => {
+	return partialUrl.replaceAll(`_`, `/`);
+};
 
 /*
 export const Home: React.FunctionComponent = () => {
@@ -19,7 +34,6 @@ export const Home: React.FunctionComponent = () => {
 		</React.Fragment>
 	);
 };
-
 */
 export const Blogs: React.FunctionComponent = () => {
 	return (
@@ -43,10 +57,11 @@ export const BlogList: React.FunctionComponent = () => {
 
 	const LoadBlogList = () => {
 		setIsLoading(true);
-		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}${(pageToken ? `&pageToken=${pageToken}` : ``)}`;
+		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}&maxResults=12${(pageToken ? `&pageToken=${pageToken}` : ``)}`;
 		fetch(fetchUrl).then(response => response.json()).then(data => {
-			setPosts(data);
-			console.log(data);
+			setPosts((current: any) => {
+				return { ...data, items: [...current.items, ...data.items] };
+			});
 		}).finally(() => setIsLoading(false));
 	};
 
@@ -56,9 +71,11 @@ export const BlogList: React.FunctionComponent = () => {
 		return div.querySelector(`img`);
 	};
 
-	const onSearchBlog = (newvalue:any) => {
+	const onSearchBlog = (newvalue: any) => {
 		setIsLoading(true);
+		gtag(`event`, `search`, { search_term: newvalue }); //send to GA
 		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts/search?key=${bloggerAPIKey}&q=${encodeURIComponent(newvalue)}`;
+
 		fetch(fetchUrl).then(response => response.json()).then(data => {
 			setPosts(data);
 		}).finally(() => setIsLoading(false));
@@ -69,19 +86,15 @@ export const BlogList: React.FunctionComponent = () => {
 			<Fluent.Stack tokens={{ childrenGap: 15, padding: 10 }}>
 				<Fluent.SearchBox placeholder="Search blog posts..." underlined={true} onSearch={onSearchBlog} onClear={() => LoadBlogList()} />
 			</Fluent.Stack>
-			{
-				isLoading && (
-					<Fluent.ProgressIndicator label="Fetching" description="Fetching blog posts" />
-				)
-			}
-			<Fluent.Stack horizontal wrap tokens={{ childrenGap: 15 }} className={`blogs`}>
+			<InfiniteScroll dataLength={posts.items.length} hasMore={true} next={() => { setPageToken(posts.nextPageToken); }} loader={<Fluent.Shimmer />}>
+				<Fluent.Stack horizontal wrap tokens={{ childrenGap: 15 }} className={`blogs`}>
 				{
-					!isLoading && posts && posts.items && posts.items.map((item: any) => (
-						<Fluent.Stack.Item grow key={`bloghead-${item.id}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
-							<Controls.RouterLink to={`/blogs/${item.id}`} className={`blogtitlelink`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
+					posts && posts.items && posts.items.map((item: any) => (
+						<Fluent.StackItem grow key={`bloghead-${item.id}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
+							<Controls.RouterLink to={`/blogs/${bloggerID}/${convertFromPermalink(item.url)}`} className={`blogtitlelink`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
 							<Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }} className={`blogtags`}>
 								{
-									item.labels && item.labels.map((label:string) => <Fluent.Stack.Item className={`blogtag`} styles={styles.blogTag}>{label}</Fluent.Stack.Item>)
+									item.labels && item.labels.map((label: string) => <Fluent.Stack.Item key={`bloghead-${item.id}-${uuidv4()}`} className={`blogtag`} styles={styles.blogTag}>{label}</Fluent.Stack.Item>)
 								}
 							</Fluent.Stack>
 							{
@@ -90,26 +103,17 @@ export const BlogList: React.FunctionComponent = () => {
 								)
 							}
 							<Fluent.Persona imageUrl={item.author.image.url} text={item.author.displayName} size={Fluent.PersonaSize.size40} secondaryText={`Written on ${(new Date(item.published)).toDateString()}`} />
-						</Fluent.Stack.Item>
+						</Fluent.StackItem>
 					))
 				}
-			</Fluent.Stack>
-			<Fluent.Stack horizontal wrap tokens={{ childrenGap: 25, padding: 10 }} horizontalAlign={`center`}>
-				{
-					!isLoading && posts && (posts.prevPageToken || posts.nextPageToken) && (
-						<React.Fragment>
-							<Fluent.IconButton iconProps={{ iconName: "ChromeBack" }} title={`Previous`} disabled={(posts.prevPageToken === undefined)} onClick={() => {
-								setPosts(null);
-								setPageToken(posts.prevPageToken);
-							}} />
-							<Fluent.IconButton iconProps={{ iconName: "ChromeBackMirrored" }} title={`Next`} disabled={(posts.nextPageToken === undefined)} onClick={() => {
-								setPosts(null);
-								setPageToken(posts.nextPageToken);
-							}} />
-						</React.Fragment>
-					)
-				}
-			</Fluent.Stack>
+				</Fluent.Stack>
+			</InfiniteScroll>
+
+			{
+				isLoading && (
+					<Fluent.ProgressIndicator label="Fetching" description="Fetching blog posts" />
+				)
+			}
 		</React.Fragment>
 	);
 };
@@ -118,8 +122,8 @@ export const BlogDetails: React.FunctionComponent = () => {
 	const [post, setPost] = React.useState<any>(undefined);
 	const [isLoading, setIsLoading] = React.useState<boolean>(false);
 	const bloggerAPIKey = process.env.REACT_APP_GOOGLEAPI_KEY;
-	const bloggerID = process.env.REACT_APP_MAINBLOGID;
 	const params = Router.useParams();
+	const location = Router.useLocation();
 
 	const breakText: Fluent.IStyle = {
 		wordBreak: 'break-word'
@@ -137,32 +141,52 @@ export const BlogDetails: React.FunctionComponent = () => {
 			if (isCodeElement(node)) {
 				return (
 					<React.Fragment>
-						<Controls.CodeBlock language={node.children[0].attribs.style} style={codeStyles.dracula}>
+						<Controls.CodeBlock hidden={true} language={node.children[0].attribs.style} style={codeStyles.dracula}>
 							{node.children[0].children[0].data}
 						</Controls.CodeBlock>
 					</React.Fragment>
 				);
 			}
 			else if (node.type === "tag" && node.name === "a" && node.children.length > 0 && node.children[0].type === "text") {
-				return (<Fluent.Link href={node.attribs.href}>{node.children[0].data}</Fluent.Link>);
+				const parseURL = new URL(node.attribs.href);
+				if (parseURL.hostname.endsWith(`.blogspot.com`)) {
+					return (<Fluent.Link href={`/#/blogs/${params.blogId}/${convertFromPermalink(node.attribs.href)}`}>{node.children[0].data}</Fluent.Link>);
+				} else {
+					return (<Fluent.Link href={node.attribs.href}>{node.children[0].data}</Fluent.Link>);
+				}
 			}
 			else if (node.type === "tag" && node.name === "img") {
-				const width = node.attribs.width as number;
-				return (<Fluent.Image alt={node.attribs.alt} src={node.attribs.src} styles={{ image: { width: width } }} />);
+				const imgsrc = (node.attribs.src as string).startsWith(`http://`) ? (node.attribs.src as string).replace(`http://`, `https://`) : node.attribs.src as string; //fixing 403 forbidden
+				const imageStyle: Fluent.IImageStyles = {
+					root: {
+						display: 'flex',
+						justifyContent: 'center'
+					},
+					image: {
+						width: 'auto',
+						maxWidth: '100%'
+					}
+				};
+				return (<Fluent.Image alt={node.attribs.alt} src={imgsrc} styles={imageStyle} imageFit={Fluent.ImageFit.cover} />);
 			}
 		}
 	};
 
 	React.useEffect(() => {
 		setIsLoading(true);
-		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts/${[params.blogId]}?key=${bloggerAPIKey}`;
+		const blogUrl = convertToPermalink(params.blogUrl as string);
+		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${params.blogId}/posts/bypath?path=${blogUrl}&key=${bloggerAPIKey}`;
 		fetch(fetchUrl).then(response => response.json()).then(data => {
 			setPost(data);
+			document.title = `${Configs.config.title} - ${data.title}`;
 		}).finally(() => setIsLoading(false));
-	}, [bloggerID, bloggerAPIKey, params.blogId]);
+
+	}, [bloggerAPIKey, params.blogUrl, params.blogId]);
+
 
 	return (
 		<React.Fragment>
+			<Controls.GoogleAnalytics />
 			{
 				isLoading && (
 					<Fluent.ProgressIndicator label="Fetching" description="Fetching a specific blog post" />
@@ -171,20 +195,25 @@ export const BlogDetails: React.FunctionComponent = () => {
 			{
 				!isLoading && post && post.title && (
 					<React.Fragment>
-						<h1><Fluent.Link key={uuidv4()} href={`/#/blogs/${post.id}`} target={`_blank`}>{post.title}</Fluent.Link></h1>
-						<Controls.RouterIconButton iconProps={{ iconName: "NavigateBack" }} to={`/blogs`} title={`back`} />
-						<Fluent.IconButton iconProps={{ iconName: "FileSymlink" }} href={post.url} target={`_blank`} title={`go to the original blog`} />
+						<Controls.GoogleAnalytics pageTitle={post.title} />
+						<h1>{post.title}</h1>
+						<div>
+							<Controls.RouterIconButton iconProps={{ iconName: "NavigateBack" }} to={`/blogs`} title={`back`} />
+							<Fluent.IconButton iconProps={{ iconName: "FileSymlink" }} href={post.url} target={`_blank`} title={`go to the original blog`} />
+						</div>
 						<div>Written by {post.author.displayName} on {(new Date(post.published)).toDateString()}</div>
 						<Fluent.Text key={uuidv4()} styles={{ root: breakText }}>
 							{Parser.default(post.content, parserOptions)}
 						</Fluent.Text>
+						<Controls.FacebookLikes href={fbBaseCommentHref()} />
+						<Controls.FacebookComments href={fbBaseCommentHref()} numPosts={Configs.config.facebookFeature.Comments.numberOfComments} width={`100%`} />
 					</React.Fragment>
 				)
 			}
 		</React.Fragment>
 	);
 };
-
+//document.location.href
 
 export const Default: React.FunctionComponent = () => {
 	const textStyle: React.CSSProperties = {
@@ -295,6 +324,7 @@ export const PasswordGen: React.FunctionComponent = () => {
 	const [SpecialCharacters, { toggle: toggleSpecialCharacters }] = Hooks.useBoolean(true);
 	const [DesiredPhrase, setDesiredPhrase] = React.useState<string>("");
 	const [isCalloutVisible, { toggle: toggleIsCalloutVisible }] = Hooks.useBoolean(false);
+	const [isLoading, { toggle: toggleIsLoading }] = Hooks.useBoolean(false);
 
 	const generatePassword = () => {
 		const PreferredPasswordLowerCase = DesiredPhrase.toLowerCase().split('');
@@ -325,9 +355,10 @@ export const PasswordGen: React.FunctionComponent = () => {
 	}, [DesiredPhrase, UppercaseLowercase, Numbers, NoModifyUppercase, SpecialCharacters]);
 
 	React.useEffect(() => {
+		toggleIsLoading();
 		fetch(`https://random-word-api.herokuapp.com/word?number=2`).then(response => response.json()).then(data => {
 			setDesiredPhrase(data.map((item: string) => (item.charAt(0).toUpperCase() + item.slice(1))).join(''));
-		});
+		}).finally(toggleIsLoading);
 	}, []);
 
 	return (
@@ -346,18 +377,27 @@ export const PasswordGen: React.FunctionComponent = () => {
 			</Fluent.TextField>
 
 			<p style={resultStyle}>
+				<React.Fragment>
+					<Fluent.Text id={lblResult} style={generatedPasswordStyle} onClick={() => { Utility.copyToClipboard(lblResult); toggleIsCalloutVisible(); setTimeout(toggleIsCalloutVisible, 1000); }}>
+						{
+							isLoading && (`generating...`)
+						}
+						{!isLoading && (password)}
+					</Fluent.Text>
+					{
+						isCalloutVisible && (
+							<Fluent.Callout target={`#${lblResult}`}>
+								<Fluent.Text>Password is copied to the clipboard.</Fluent.Text>
+							</Fluent.Callout>
+						)
+					}
+					<Fluent.IconButton primary onClick={generatePassword} iconProps={{ iconName: "Refresh" }}></Fluent.IconButton>
+				</React.Fragment>
 
-				<Fluent.Text id={lblResult} style={generatedPasswordStyle} onClick={() => { Utility.copyToClipboard(lblResult); toggleIsCalloutVisible(); setTimeout(toggleIsCalloutVisible, 1000); }}>{password}</Fluent.Text>
-				{
-					isCalloutVisible && (
-						<Fluent.Callout target={`#${lblResult}`}>
-							<Fluent.Text>Password is copied to the clipboard.</Fluent.Text>
-						</Fluent.Callout>
-					)
-				}
-				<Fluent.IconButton primary onClick={generatePassword} iconProps={{ iconName: "Refresh" }}></Fluent.IconButton>
 			</p>
 
+			<Controls.FacebookLikes href={fbBaseCommentHref()} />
+			<Controls.FacebookComments href={fbBaseCommentHref()} numPosts={Configs.config.facebookFeature.Comments.numberOfComments} width={`100%`} />
 		</React.Fragment>
 	);
 };
