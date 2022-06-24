@@ -72,7 +72,7 @@ const App: React.FunctionComponent = () => {
                                 item.url !== undefined && (
                                   <React.Fragment>
                                     <Controls.RouterIconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} to={(item.url as Router.To)} onClick={closePanel} />
-                                    <Fluent.Text nowrap block variant={'small'} styles={styles.appLabel}>{item.label}</Fluent.Text>
+                                    <Fluent.Text variant={'xSmall'} styles={styles.appLabel}>{item.label}</Fluent.Text>
                                   </React.Fragment>
 
                                 )

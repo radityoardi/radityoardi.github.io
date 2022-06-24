@@ -88,24 +88,24 @@ export const BlogList: React.FunctionComponent = () => {
 			</Fluent.Stack>
 			<InfiniteScroll dataLength={posts.items.length} hasMore={true} next={() => { setPageToken(posts.nextPageToken); }} loader={<Fluent.Shimmer />}>
 				<Fluent.Stack horizontal wrap tokens={{ childrenGap: 15 }} className={`blogs`}>
-				{
-					posts && posts.items && posts.items.map((item: any) => (
-						<Fluent.StackItem grow key={`bloghead-${item.id}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
-							<Controls.RouterLink to={`/blogs/${bloggerID}/${convertFromPermalink(item.url)}`} className={`blogtitlelink`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
-							<Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }} className={`blogtags`}>
+					{
+						posts && posts.items && posts.items.map((item: any) => (
+							<Fluent.StackItem grow key={`bloghead-${item.id}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
+								<Controls.RouterLink to={`/blogs/${bloggerID}/${convertFromPermalink(item.url)}`} className={`blogtitlelink`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
+								<Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }} className={`blogtags`}>
+									{
+										item.labels && item.labels.map((label: string) => <Fluent.Stack.Item key={`bloghead-${item.id}-${uuidv4()}`} className={`blogtag`} styles={styles.blogTag}>{label}</Fluent.Stack.Item>)
+									}
+								</Fluent.Stack>
 								{
-									item.labels && item.labels.map((label: string) => <Fluent.Stack.Item key={`bloghead-${item.id}-${uuidv4()}`} className={`blogtag`} styles={styles.blogTag}>{label}</Fluent.Stack.Item>)
+									firstImageUrl(item.content) && (
+										<Fluent.Image src={firstImageUrl(item.content)?.src} imageFit={Fluent.ImageFit.cover} height={150} styles={styles.blogImage} className={`blogimage`} />
+									)
 								}
-							</Fluent.Stack>
-							{
-								firstImageUrl(item.content) && (
-									<Fluent.Image src={firstImageUrl(item.content)?.src} imageFit={Fluent.ImageFit.cover} height={150} styles={styles.blogImage} className={`blogimage`} />
-								)
-							}
-							<Fluent.Persona imageUrl={item.author.image.url} text={item.author.displayName} size={Fluent.PersonaSize.size40} secondaryText={`Written on ${(new Date(item.published)).toDateString()}`} />
-						</Fluent.StackItem>
-					))
-				}
+								<Fluent.Persona imageUrl={item.author.image.url} text={item.author.displayName} size={Fluent.PersonaSize.size40} secondaryText={`Written on ${(new Date(item.published)).toDateString()}`} />
+							</Fluent.StackItem>
+						))
+					}
 				</Fluent.Stack>
 			</InfiniteScroll>
 
@@ -437,6 +437,47 @@ export const Experimental: React.FunctionComponent = () => {
 	return (
 		<React.Fragment>
 			This is just an experiment.
+		</React.Fragment>
+	);
+};
+
+export const URIEncodeDecode: React.FunctionComponent = () => {
+
+	const [convertedText, setConvertedText] = React.useState<string>("");
+	const [originalText, setOriginalText] = React.useState<string>("");
+	const [isURIComponent, { toggle: toggleIsURIComponent }] = Hooks.useBoolean(true);
+	const [isEncode, {toggle: toggleIsEncode}] = Hooks.useBoolean(true);
+	const rows = 10;
+
+	React.useEffect(() => {
+		if (isEncode && isURIComponent) {
+			setConvertedText(encodeURIComponent(originalText as string));
+		} else if (!isEncode && isURIComponent) {
+			setConvertedText(decodeURIComponent(originalText as string));
+		} else if (isEncode && !isURIComponent) {
+			setConvertedText(encodeURI(originalText as string));
+		} else if (!isEncode && !isURIComponent) {
+			setConvertedText(decodeURI(originalText as string));
+		} else {
+			setConvertedText("");
+		}
+	}, [originalText, isEncode, isURIComponent]);
+
+	return (
+		<React.Fragment>
+			<h1>URI Encoder-Decoder</h1>
+			<Fluent.Stack tokens={ { childrenGap: 10 } }>
+				<Fluent.TextField label={`Text to ${isEncode?`en`:`de`}code`} rows={rows} multiline autoAdjustHeight onChange={(ev, newText) => { setOriginalText(newText ?? ``); }} />
+				<Fluent.Stack grow horizontal tokens={ { childrenGap: 10 } }>
+					<Fluent.StackItem grow>
+						<Fluent.Toggle onText='URI Component' offText='URI' defaultChecked={isURIComponent} onChange={toggleIsURIComponent} />
+					</Fluent.StackItem>
+					<Fluent.StackItem grow>
+						<Fluent.Toggle onText='Encode' offText='Decode' defaultChecked={isEncode} onChange={toggleIsEncode} />
+					</Fluent.StackItem>
+				</Fluent.Stack>
+				<Fluent.TextField label={`${isEncode?`En`:`De`}coded text`} rows={rows} multiline readOnly autoAdjustHeight value={convertedText} />
+			</Fluent.Stack>
 		</React.Fragment>
 	);
 };

@@ -92,6 +92,14 @@ export const config = {
 					pageComponent: <Pages.PasswordGen />
 				},
 				{
+					pageTitle: "URI Encode-Decode",
+					iconName: "ChangeEntitlements",
+					label: "URI Encode-Decode",
+					url: `/uri-encode-decode`,
+					key: uuidv4(),
+					pageComponent: <Pages.URIEncodeDecode />
+				},
+				{
 					pageTitle: "Blogs",
 					iconName: "blog",
 					label: "Blogs",

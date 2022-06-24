@@ -47,6 +47,9 @@ export const appBar: Fluent.IStackStyles = {
   root: {
     height: 50,
     maxHeight: 50,
+    position: 'fixed',
+    width: '100%',
+    zIndex: 1000,
   }
 };
 export const siteIcon: Fluent.IImageStyles = {
@@ -96,7 +99,7 @@ export const appLauncherButton: Fluent.IButtonStyles = {
     color: appTheme.palette.themeDark
   }
 };
-const appIconDimension = 40;
+const appIconDimension = 20;
 export const appIconButton: Fluent.IButtonStyles = {
   root: {
     height: 'calc(100% - 18px)',
@@ -120,6 +123,7 @@ export const appLauncherIcon: CSSProperties = {
 };
 
 export const divContent: CSSProperties = {
+  position: 'relative',
 };
 
 const appBlockDimension = 65;
@@ -129,10 +133,11 @@ export const appBlock: Fluent.IStackStyles = {
   root: {
     width: appBlockDimension,
     maxWidth: appBlockDimension,
-    height: appBlockDimension + textBlockHeight,
-    maxHeight: appBlockDimension + textBlockHeight,
+    //height: appBlockDimension + textBlockHeight,
+    //maxHeight: appBlockDimension + textBlockHeight,
     justifyContent: 'center',
-    alignContent: 'center'
+    alignContent: 'center',
+    border: 'solid 1px red',
   }
 };
 export const appLabel: Fluent.ITextStyles = {
