@@ -177,6 +177,7 @@ export const RdzMarkdown: React.FunctionComponent<{ require: any, gfm?: boolean 
 
 
 export const FacebookComments: React.FunctionComponent<{ href?: string, numPosts?: number | string, width?: number | string }> = ({ href, numPosts, width }) => {
+  console.log(`FB Comments: `, href);
   React.useEffect(() => {
     const fb = (window as any).FB;
     if (fb) {
@@ -191,6 +192,7 @@ export const FacebookComments: React.FunctionComponent<{ href?: string, numPosts
 };
 
 export const FacebookLikes: React.FunctionComponent<{ href?: string, width?: number | string }> = ({href, width}) => {
+  console.log(`FB Likes: `, href);
   return (
     <React.Fragment>
       <div className="fb-like" data-href={href} data-width={width} data-layout="standard" data-action="like" data-size="large" data-share="true"></div>
