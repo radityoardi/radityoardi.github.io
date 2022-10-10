@@ -10,6 +10,13 @@ export interface IIconButtonProps extends Omit<Fluent.IButtonProps, "href"> {
   to: Router.To;
 }
 
+export interface IActionButtonProps extends Omit<Fluent.IButtonProps, "href"> {
+  reloadDocument?: boolean;
+  replace?: boolean;
+  state?: any;
+  to: Router.To;
+}
+
 export interface ILinkProps extends Omit<Fluent.ILinkProps, "href"> {
   reloadDocument?: boolean;
   replace?: boolean;

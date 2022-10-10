@@ -54,7 +54,8 @@ export const appBar: Fluent.IStackStyles = {
 };
 export const siteIcon: Fluent.IImageStyles = {
   root: {
-    height: 50
+    height: 40,
+    margin: 5,
   },
   image: {
   }
@@ -83,6 +84,13 @@ export const titleBlock: CSSProperties = {
   margin: "auto 15px"
 };
 
+export const groupLabel: Fluent.ITextStyles = {
+  root: {
+    fontWeight: 'bold',
+  }
+};
+
+
 export const appLauncherButton: Fluent.IButtonStyles = {
   root: {
     height: '100%',
@@ -99,15 +107,18 @@ export const appLauncherButton: Fluent.IButtonStyles = {
     color: appTheme.palette.themeDark
   }
 };
-const appIconDimension = 20;
+
+const appIconDimension = 40;
+const appBlockDimension = 40;
+const textBlockHeight = 18;
+
 export const appIconButton: Fluent.IButtonStyles = {
   root: {
-    height: 'calc(100% - 18px)',
-    width: '100%',
-    borderRadius: 15
+    height: '100%',
+    //width: '100%',
+    borderRadius: 15,
   },
   icon: {
-    fontSize: appIconDimension,
     height: appIconDimension,
     lineHeight: appIconDimension
   }
@@ -126,23 +137,26 @@ export const divContent: CSSProperties = {
   position: 'relative',
 };
 
-const appBlockDimension = 65;
-const textBlockHeight = 18;
 
 export const appBlock: Fluent.IStackStyles = {
   root: {
-    width: appBlockDimension,
-    maxWidth: appBlockDimension,
+    //width: appBlockDimension,
+    //maxWidth: appBlockDimension,
     //height: appBlockDimension + textBlockHeight,
     //maxHeight: appBlockDimension + textBlockHeight,
-    justifyContent: 'center',
-    alignContent: 'center',
-    border: 'solid 1px red',
+    height: appBlockDimension,
+    maxHeight: appBlockDimension,
+    //justifyContent: 'center',
+    //alignContent: 'center',
+    //border: 'solid 1px red', //test only
+    //backgroundColor: 'beige', //test only
   }
 };
 export const appLabel: Fluent.ITextStyles = {
   root: {
-    textAlign: 'center'
+    textAlign: 'center',
+    display: 'inline-block',
+    //backgroundColor: 'aqua', //test only
   }
 };
 export const appBlock2: CSSProperties = {

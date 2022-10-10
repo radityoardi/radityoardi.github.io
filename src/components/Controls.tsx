@@ -39,6 +39,33 @@ export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconB
   }
 );
 
+export const RouterActionButton = React.forwardRef<Fluent.ActionButton, Types.IActionButtonProps>(
+  function ButtonWithRef(
+    { onClick, reloadDocument, replace = false, state, target, to, ...rest },
+    ref) {
+    let href = Router.useHref(to);
+    let internalOnClick = Router.useLinkClickHandler(to, { replace, state, target });;
+    function handleClick(
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+    ) {
+      if (onClick) onClick(event);
+      if (!event.defaultPrevented && !reloadDocument) {
+        internalOnClick(event);
+      }
+    }
+
+    return (
+      <Fluent.ActionButton
+        {...rest}
+        href={href}
+        onClick={handleClick}
+        ref={ref}
+        target={target}
+      />
+    );
+  }
+);
+
 export const RouterLink = React.forwardRef<HTMLElement, Types.ILinkProps>(
   function LinkWithRef(
     { onClick, reloadDocument, replace = false, state, target, to, ...rest },

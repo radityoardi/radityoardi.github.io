@@ -20,7 +20,7 @@ const App: React.FunctionComponent = () => {
   const appVersion = process.env.REACT_APP_VERSION;
 
   ///////////////////////////// FUNCTIONS
-   const isDisplayed = (displayMode?: Types.DisplayMode): boolean => {
+  const isDisplayed = (displayMode?: Types.DisplayMode): boolean => {
     return (displayMode === undefined || (isAuthenticated && displayMode === Types.DisplayMode.AuthenticatedOnly) || (!isAuthenticated && displayMode === Types.DisplayMode.UnauthenticatedOnly));
   };
 
@@ -42,42 +42,44 @@ const App: React.FunctionComponent = () => {
               event.stopPropagation();
             }} />
             <Fluent.Panel headerText={Configs.config.rightPanelTitle} type={Fluent.PanelType.smallFixedFar} isBlocking={false} isOpen={isOpen} onDismiss={closePanel} closeButtonAriaLabel="Close">
-              <Fluent.Stack tokens={{ childrenGap: 20 }}>
+              <Fluent.Stack tokens={{ childrenGap: 40 }}>
                 {
                   Configs.config.appIcons.Where(x => isDisplayed(x?.displayMode)).ToArray().map((heading: Configs.IAppMenu) => (
                     <Fluent.Stack.Item key={uuidv4()}>
                       {
                         heading.label && (
-                          <Fluent.Text variant={'mediumPlus'} nowrap block>{heading.label}</Fluent.Text>
+                          <Fluent.Text variant={'mediumPlus'} styles={styles.groupLabel} nowrap block>{heading.label}</Fluent.Text>
                         )
                       }
-                      <Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }}>
+                      <Fluent.Stack wrap tokens={{ childrenGap: 10 }}>
                         {
                           heading.submenu?.Where(x => isDisplayed(x?.displayMode)).ToArray().map((item: Configs.IAppMenu) => (
-                            <Fluent.StackItem grow disableShrink styles={styles.appBlock} key={`navigation-${item.key}`}>
+                            <Fluent.Stack verticalAlign='center' tokens={{ childrenGap: 10 }} styles={styles.appBlock} key={`navigation-${item.key}`}>
                               {
                                 item.url === undefined && (
                                   <React.Fragment>
-                                    <Fluent.IconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} onClick={ev => {
+                                    <Fluent.ActionButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} onClick={ev => {
                                       if (item.onClick !== undefined) {
                                         item.onClick(ev, msalInstance);
                                       }
                                       closePanel();
-                                    }} />
-                                    <Fluent.Text nowrap block variant={'small'} styles={styles.appLabel}>{item.label}</Fluent.Text>
+                                    }}>
+                                      {item.label}
+                                    </Fluent.ActionButton>
                                   </React.Fragment>
                                 )
                               }
                               {
                                 item.url !== undefined && (
                                   <React.Fragment>
-                                    <Controls.RouterIconButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} to={(item.url as Router.To)} onClick={closePanel} />
-                                    <Fluent.Text variant={'xSmall'} styles={styles.appLabel}>{item.label}</Fluent.Text>
+                                    <Controls.RouterActionButton iconProps={{ iconName: item.iconName }} title={item.label} ariaLabel={item.label} styles={styles.appIconButton} to={(item.url as Router.To)} onClick={closePanel}>
+                                      {item.label}
+                                    </Controls.RouterActionButton>
                                   </React.Fragment>
 
                                 )
                               }
-                            </Fluent.StackItem>
+                            </Fluent.Stack>
                           ))
                         }
                       </Fluent.Stack>
