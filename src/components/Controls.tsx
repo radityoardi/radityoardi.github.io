@@ -2,6 +2,7 @@ import React from 'react';
 import * as Fluent from '@fluentui/react';
 import * as Router from 'react-router-dom';
 import * as Types from './Types';
+import * as MyHooks from './Hooks';
 import * as codeStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter, { SyntaxHighlighterProps } from 'react-syntax-highlighter';
 import * as Hooks from '@fluentui/react-hooks';
@@ -11,6 +12,9 @@ import * as Cookie from 'typescript-cookie';
 import * as Helmet from 'react-helmet';
 import { List } from 'linqts';
 import * as Configs from './configs/config';
+import * as G from 'react-google-login';
+import { gapi } from 'gapi-script';
+import { GoogleUserContext } from './utils/GoogleUserContext';
 
 export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconButtonProps>(
   function ButtonWithRef(
@@ -137,15 +141,15 @@ export const CodeBlock = React.forwardRef<SyntaxHighlighter, CodeBlockProps>(
 
     return (
       <React.Fragment>
-        <Fluent.CommandBarButton text={isCodeHidden ? rest.showCodeText ?? `Show code` : rest.hideCodeText ?? `Hide code`} iconProps={{ iconName: isCodeHidden ? `RedEye` : `Hide` }} styles={ { root: { height: rest.commandBarButtonHeight ?? defaultCommandBarButtonHeight } } } key={uuidv4()} onClick={() => {
+        <Fluent.CommandBarButton text={isCodeHidden ? rest.showCodeText ?? `Show code` : rest.hideCodeText ?? `Hide code`} iconProps={{ iconName: isCodeHidden ? `RedEye` : `Hide` }} styles={{ root: { height: rest.commandBarButtonHeight ?? defaultCommandBarButtonHeight } }} key={uuidv4()} onClick={() => {
           toggleIsCodeHidden();
         }} />
         {
-          isCodeHidden && <Fluent.Separator>{ rest.hiddenCodeText ?? `collapsed code` }</Fluent.Separator>
+          isCodeHidden && <Fluent.Separator>{rest.hiddenCodeText ?? `collapsed code`}</Fluent.Separator>
         }
         {
           !isCodeHidden && (
-            <Fluent.CommandBarButton text={`Copy to clipboard`} iconProps={{ iconName: "Copy" }} styles={ { root: { height: rest.commandBarButtonHeight ?? defaultCommandBarButtonHeight } } } id={btnCopy} key={uuidv4()} onClick={() => {
+            <Fluent.CommandBarButton text={`Copy to clipboard`} iconProps={{ iconName: "Copy" }} styles={{ root: { height: rest.commandBarButtonHeight ?? defaultCommandBarButtonHeight } }} id={btnCopy} key={uuidv4()} onClick={() => {
               setTargetControlId(btnCopy);
               navigator.clipboard.writeText(rest.children as string);
               toggleIsCalloutVisible();
@@ -166,7 +170,7 @@ export const CodeBlock = React.forwardRef<SyntaxHighlighter, CodeBlockProps>(
             </SyntaxHighlighter>
           )
         }
-        
+
       </React.Fragment>
     );
   }
@@ -218,11 +222,100 @@ export const FacebookComments: React.FunctionComponent<{ href?: string, numPosts
   );
 };
 
-export const FacebookLikes: React.FunctionComponent<{ href?: string, width?: number | string }> = ({href, width}) => {
-  console.log(`FB Likes: `, href);
+export const FacebookLikes: React.FunctionComponent<{ href?: string, width?: number | string }> = ({ href, width }) => {
   return (
     <React.Fragment>
       <div className="fb-like" data-href={href} data-width={width} data-layout="standard" data-action="like" data-size="large" data-share="true"></div>
+    </React.Fragment>
+  );
+};
+
+export const GoogleAccount: React.FunctionComponent<Types.IGoogleAccount> = (ga: Types.IGoogleAccount) => {
+  /*
+  Reference:
+  https://dev.to/sivaneshs/add-google-login-to-your-react-apps-in-10-mins-4del
+  https://blog.logrocket.com/guide-adding-google-login-react-app/
+  https://github.com/partnerhero/gapi-script
+  https://github.com/LucasAndrad/gapi-script-live-example/blob/master/src/components/GoogleLogin.js
+  */
+  const { profile, setProfile } = React.useContext(GoogleUserContext);
+
+  React.useEffect(() => {
+    const initClient = () => {
+      gapi.client.init({
+        clientId: process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string,
+        scope: process.env.REACT_APP_GOOGLE_OAUTH_SCOPES as string,
+        apiKey: process.env.REACT_APP_GOOGLEAPI_KEY as string,
+        discoveryDocs: [`https://blogger.googleapis.com/$discovery/rest?version=v3`, `https://www.googleapis.com/discovery/v1/apis/drive/v3/rest`]
+      });
+    };
+    gapi.load('client:auth2', initClient);
+  }, []);
+
+  return (
+    <React.Fragment>
+      {
+        profile ? (
+          <React.Fragment>
+            <Fluent.Stack horizontal>
+              <Fluent.StackItem grow={2}>
+                {ga.authenticated}
+              </Fluent.StackItem>
+              <Fluent.StackItem disableShrink>
+                <G.GoogleLogout
+                  clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
+                  onLogoutSuccess={() => {
+                    setProfile(undefined);
+                  }}
+                />
+              </Fluent.StackItem>
+            </Fluent.Stack>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <Fluent.Stack horizontal>
+              <Fluent.StackItem grow={2}>
+                {ga.unauthenticated}
+              </Fluent.StackItem>
+              <Fluent.StackItem disableShrink>
+                <G.GoogleLogin
+                  clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
+                  onSuccess={(res: any) => {
+                    setProfile(res.profileObj);
+                  }}
+                  onFailure={(err) => {
+                    console.error(`Google sign in error.`, err);
+                  }}
+                  scope={process.env.REACT_APP_GOOGLE_OAUTH_SCOPES as string}
+                />
+
+              </Fluent.StackItem>
+            </Fluent.Stack>
+          </React.Fragment>
+        )
+      }
+
+
+
+    </React.Fragment>
+  );
+};
+
+export const CommonGoogleAuthenticated: React.FunctionComponent = () => {
+  const { profile, setProfile } = React.useContext(GoogleUserContext);
+  return (
+    <React.Fragment>
+      <Fluent.Persona text={profile?.name} imageUrl={profile?.imageUrl} secondaryText={profile?.email} />
+    </React.Fragment>
+  );
+};
+
+export const CommonGoogleUnauthenticated: React.FunctionComponent = () => {
+  return (
+    <React.Fragment>
+      <Fluent.Text>
+        Apparently, I need your permission to write blog on your behalf. Click on the sign in button and ensure the permission to blogger and drive are selected.
+      </Fluent.Text>
     </React.Fragment>
   );
 };
@@ -274,7 +367,7 @@ export interface IGoogleAnalyticsProps {
 
 export const GoogleAnalytics: React.FunctionComponent<IGoogleAnalyticsProps> = (props: IGoogleAnalyticsProps) => {
   const location = Router.useLocation();
-  
+
   const [pageTitle, setPageTitle] = React.useState<string>();
 
   const getTitleFromConfigs = (url: string, menuitem?: List<Configs.IAppMenu>): string | undefined => {
@@ -313,8 +406,8 @@ export const GoogleAnalytics: React.FunctionComponent<IGoogleAnalyticsProps> = (
     }
   }, [pageTitle]);
 
-	return (
-		<React.Fragment>
-		</React.Fragment>
-	);
+  return (
+    <React.Fragment>
+    </React.Fragment>
+  );
 };

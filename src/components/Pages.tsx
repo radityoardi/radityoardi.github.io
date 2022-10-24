@@ -11,7 +11,8 @@ import * as Parser from "html-react-parser";
 import * as codeStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import * as Configs from './configs/config';
 import InfiniteScroll from 'react-infinite-scroll-component';
-
+import { GoogleUserContext } from './utils/GoogleUserContext';
+import { gapi } from 'gapi-script';
 
 const fbBaseCommentHref = () => {
 	return document.location.origin !== process.env.REACT_APP_FBCOMMENT_BASEURL ? `${process.env.REACT_APP_FBCOMMENT_BASEURL}/${(new URL(document.location.href)).hash}` : document.location.href;
@@ -446,7 +447,7 @@ export const URIEncodeDecode: React.FunctionComponent = () => {
 	const [convertedText, setConvertedText] = React.useState<string>("");
 	const [originalText, setOriginalText] = React.useState<string>("");
 	const [isURIComponent, { toggle: toggleIsURIComponent }] = Hooks.useBoolean(true);
-	const [isEncode, {toggle: toggleIsEncode}] = Hooks.useBoolean(true);
+	const [isEncode, { toggle: toggleIsEncode }] = Hooks.useBoolean(true);
 	const rows = 10;
 
 	React.useEffect(() => {
@@ -466,9 +467,9 @@ export const URIEncodeDecode: React.FunctionComponent = () => {
 	return (
 		<React.Fragment>
 			<h1>URI Encoder-Decoder</h1>
-			<Fluent.Stack tokens={ { childrenGap: 10 } }>
-				<Fluent.TextField label={`Text to ${isEncode?`en`:`de`}code`} rows={rows} multiline autoAdjustHeight onChange={(ev, newText) => { setOriginalText(newText ?? ``); }} />
-				<Fluent.Stack grow horizontal tokens={ { childrenGap: 10 } }>
+			<Fluent.Stack tokens={{ childrenGap: 10 }}>
+				<Fluent.TextField label={`Text to ${isEncode ? `en` : `de`}code`} rows={rows} multiline autoAdjustHeight onChange={(ev, newText) => { setOriginalText(newText ?? ``); }} />
+				<Fluent.Stack grow horizontal tokens={{ childrenGap: 10 }}>
 					<Fluent.StackItem grow>
 						<Fluent.Toggle onText='URI Component' offText='URI' defaultChecked={isURIComponent} onChange={toggleIsURIComponent} />
 					</Fluent.StackItem>
@@ -476,8 +477,70 @@ export const URIEncodeDecode: React.FunctionComponent = () => {
 						<Fluent.Toggle onText='Encode' offText='Decode' defaultChecked={isEncode} onChange={toggleIsEncode} />
 					</Fluent.StackItem>
 				</Fluent.Stack>
-				<Fluent.TextField label={`${isEncode?`En`:`De`}coded text`} rows={rows} multiline readOnly autoAdjustHeight value={convertedText} />
+				<Fluent.TextField label={`${isEncode ? `En` : `De`}coded text`} rows={rows} multiline readOnly autoAdjustHeight value={convertedText} />
 			</Fluent.Stack>
+		</React.Fragment>
+	);
+};
+
+
+export const BloggerEditor: React.FunctionComponent = () => {
+	const { profile, setProfile } = React.useContext(GoogleUserContext);
+	const [headers, setHeaders] = React.useState([]);
+	const apiKey = process.env.REACT_APP_GOOGLEAPI_KEY;
+
+	React.useEffect(() => {
+		const auth2 = gapi.auth2?.getAuthInstance();
+	}, []);
+
+	return (
+		<React.Fragment>
+			<h1>Google Blogger</h1>
+			<Controls.GoogleAccount
+				authenticated={
+					<React.Fragment>
+						<Controls.CommonGoogleAuthenticated />
+						<Fluent.CompoundButton onClick={() => {
+							//console.log(gapi);
+							gapi.client.blogger.blogs.listByUser({
+								userId: `self`
+							}).then((res:any) => {
+								console.log(res);
+							});
+						}}>
+							Get Status
+						</Fluent.CompoundButton>
+						<Fluent.Text>
+							{profile?.googleId}
+						</Fluent.Text>
+					</React.Fragment>
+				}
+				unauthenticated={
+					<React.Fragment>
+						<Controls.CommonGoogleUnauthenticated />
+					</React.Fragment>
+				}
+			/>
+		</React.Fragment>
+	);
+};
+
+export const DriveEditor: React.FunctionComponent = () => {
+	return (
+		<React.Fragment>
+			<h1>Google Drive</h1>
+			<Controls.GoogleAccount
+				authenticated={
+					<React.Fragment>
+						<Controls.CommonGoogleAuthenticated />
+					</React.Fragment>
+				}
+				unauthenticated={
+					<React.Fragment>
+						<Controls.CommonGoogleUnauthenticated />
+					</React.Fragment>
+				}
+			/>
 		</React.Fragment>
 	);
 };

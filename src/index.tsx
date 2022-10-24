@@ -10,7 +10,6 @@ import * as MSALBrowser from '@azure/msal-browser';
 import * as MSALReact from '@azure/msal-react';
 import * as Configs from './components/configs/config';
 
-
 const msalInstance = new MSALBrowser.PublicClientApplication(Configs.config.msal.msalConfig);
 
 ReactDOM.render(

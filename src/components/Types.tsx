@@ -31,6 +31,28 @@ export interface IDocumentCardProps extends Omit<Fluent.IDocumentCardProps, "onC
   to: Router.To;
 }
 
+export interface IGoogleAccount {
+  authenticated?: React.ReactNode;
+  unauthenticated?: React.ReactNode;
+  scopes?: string | string[] | undefined;
+}
+
+export interface IGoogleProfile {
+  googleId: string,
+  imageUrl: string,
+  email: string,
+  name: string,
+  givenName: string,
+  familyName: string,
+}
+
+export type GoogleProfile = IGoogleProfile | undefined;
+
+export interface IGoogleProfileContext {
+  profile: GoogleProfile,
+  setProfile: React.Dispatch<React.SetStateAction<GoogleProfile>>
+}
+
 export enum DisplayMode {
 	AuthenticatedOnly,
 	UnauthenticatedOnly

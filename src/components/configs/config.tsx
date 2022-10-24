@@ -14,6 +14,7 @@ export interface IAppMenu {
 	pageTitle?: string;
 	iconName?: string;
 	label?: string;
+	toolTip?:string;
 	componentName?: string;
 	isRouterIndex?: boolean;
 	key: string;
@@ -145,6 +146,31 @@ export const config = {
 					key: uuidv4(),
 					displayMode: Types.DisplayMode.UnauthenticatedOnly
 				}
+			])
+		},
+		{
+			label: "Google",
+			type: Types.CommandType.Heading,
+			key: uuidv4(),
+			submenu: new List<IAppMenu>([
+				{
+					pageTitle: "Blogger",
+					iconName: "page",
+					label: "Blogger",
+					toolTip: "Write your own blog with my editor (requires app permission).",
+					url: `/google/blogger`,
+					key: uuidv4(),
+					pageComponent: <Pages.BloggerEditor />
+				},
+				{
+					pageTitle: "Drive",
+					iconName: "page",
+					label: "Drive",
+					toolTip: "Write your own blog with my editor (requires app permission).",
+					url: `/google/drive`,
+					key: uuidv4(),
+					pageComponent: <Pages.DriveEditor />
+				},
 			])
 		},
 		{
