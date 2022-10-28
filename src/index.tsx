@@ -11,7 +11,8 @@ import * as MSALReact from '@azure/msal-react';
 import * as Configs from './components/configs/config';
 
 const msalInstance = new MSALBrowser.PublicClientApplication(Configs.config.msal.msalConfig);
-
+/*
+DISABLING StrictMode because of double rendering
 ReactDOM.render(
   <React.StrictMode>
     <Fluent.ThemeProvider theme={styles.appTheme}>
@@ -22,6 +23,17 @@ ReactDOM.render(
       </Router.HashRouter>
     </Fluent.ThemeProvider>
   </React.StrictMode>,
+  document.getElementById('root')
+);
+*/
+ReactDOM.render(
+  <Fluent.ThemeProvider theme={styles.appTheme}>
+    <Router.HashRouter>
+      <MSALReact.MsalProvider instance={msalInstance}>
+        <App />
+      </MSALReact.MsalProvider>
+    </Router.HashRouter>
+  </Fluent.ThemeProvider>,
   document.getElementById('root')
 );
 

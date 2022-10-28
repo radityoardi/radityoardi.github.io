@@ -1,5 +1,6 @@
 import React from 'react';
 import * as Fluent from '@fluentui/react';
+import * as MUI from '@mui/material';
 import * as Router from 'react-router-dom';
 import * as Types from './Types';
 import * as MyHooks from './Hooks';
@@ -9,12 +10,13 @@ import * as Hooks from '@fluentui/react-hooks';
 import { v4 as uuidv4 } from 'uuid';
 import Markdown from 'marked-react';
 import * as Cookie from 'typescript-cookie';
-import * as Helmet from 'react-helmet';
 import { List } from 'linqts';
 import * as Configs from './configs/config';
 import * as G from 'react-google-login';
 import { gapi } from 'gapi-script';
 import { GoogleUserContext } from './utils/GoogleUserContext';
+import EditorJS, { API } from '@editorjs/editorjs';
+import { Blocks } from './utils/EditorJsBlocks';
 
 export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconButtonProps>(
   function ButtonWithRef(
@@ -246,7 +248,7 @@ export const GoogleAccount: React.FunctionComponent<Types.IGoogleAccount> = (ga:
         clientId: process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string,
         scope: process.env.REACT_APP_GOOGLE_OAUTH_SCOPES as string,
         apiKey: process.env.REACT_APP_GOOGLEAPI_KEY as string,
-        discoveryDocs: [`https://blogger.googleapis.com/$discovery/rest?version=v3`, `https://www.googleapis.com/discovery/v1/apis/drive/v3/rest`]
+        discoveryDocs: (process.env.REACT_APP_GOOGLE_OAUTH_DISCOVERYDOCS as string).split(` `)
       });
     };
     gapi.load('client:auth2', initClient);
@@ -257,39 +259,48 @@ export const GoogleAccount: React.FunctionComponent<Types.IGoogleAccount> = (ga:
       {
         profile ? (
           <React.Fragment>
-            <Fluent.Stack horizontal>
-              <Fluent.StackItem grow={2}>
-                {ga.authenticated}
-              </Fluent.StackItem>
-              <Fluent.StackItem disableShrink>
-                <G.GoogleLogout
-                  clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
-                  onLogoutSuccess={() => {
-                    setProfile(undefined);
-                  }}
-                />
-              </Fluent.StackItem>
+            <Fluent.Stack tokens={{ childrenGap: 10 }}>
+              <Fluent.Stack horizontal>
+                <Fluent.StackItem grow={2}>
+                  {ga.authenticatedHeader}
+                </Fluent.StackItem>
+                <Fluent.StackItem disableShrink>
+                  <G.GoogleLogout
+                    clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
+                    onLogoutSuccess={() => {
+                      setProfile(undefined);
+                    }}
+                  />
+                </Fluent.StackItem>
+              </Fluent.Stack>
+              {ga.authenticated}
+
             </Fluent.Stack>
           </React.Fragment>
         ) : (
           <React.Fragment>
-            <Fluent.Stack horizontal>
-              <Fluent.StackItem grow={2}>
-                {ga.unauthenticated}
-              </Fluent.StackItem>
-              <Fluent.StackItem disableShrink>
-                <G.GoogleLogin
-                  clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
-                  onSuccess={(res: any) => {
-                    setProfile(res.profileObj);
-                  }}
-                  onFailure={(err) => {
-                    console.error(`Google sign in error.`, err);
-                  }}
-                  scope={process.env.REACT_APP_GOOGLE_OAUTH_SCOPES as string}
-                />
+            <Fluent.Stack tokens={{ childrenGap: 10 }}>
+              <Fluent.Stack horizontal>
+                <Fluent.StackItem grow={2}>
+                  {ga.unauthenticatedHeader}
+                </Fluent.StackItem>
+                <Fluent.StackItem disableShrink>
+                  <G.GoogleLogin
+                    clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
+                    onSuccess={(res: any) => {
+                      setProfile(res.profileObj);
+                      fetch(res.profileObj.imageUrl, { headers: { 'Origin': process.env.REACT_APP_AZUREAD_APP_REDIRECTURL as string } });
+                      //please visit next time to fix the CORS issue when loading picture images
+                    }}
+                    onFailure={(err) => {
+                      console.error(`Google sign in error.`, err);
+                    }}
+                    scope={process.env.REACT_APP_GOOGLE_OAUTH_SCOPES as string}
+                  />
 
-              </Fluent.StackItem>
+                </Fluent.StackItem>
+              </Fluent.Stack>
+              {ga.unauthenticated}
             </Fluent.Stack>
           </React.Fragment>
         )
@@ -411,3 +422,46 @@ export const GoogleAnalytics: React.FunctionComponent<IGoogleAnalyticsProps> = (
     </React.Fragment>
   );
 };
+
+export const ReactEditor = React.forwardRef<EditorJS, Types.IEditorJs>((props: Types.IEditorJs, ref: React.ForwardedRef<EditorJS>) => {
+  const [editor, setEditor] = React.useState<EditorJS>();
+  const edjsID = Hooks.useId(`editorjs`);
+
+  React.useEffect(() => {
+    if (!editor) {
+      const _ed = new EditorJS({
+        holder: props.id ?? edjsID,
+        onReady: props.onReady,
+        onChange: props.onChange,
+        tools: {
+          ...Blocks,
+          ...props.Blocks,
+        },
+        autofocus: props.autofocus ?? false
+      });
+      _ed.styles = props.editorJsStyles ?? _ed.styles;
+      setEditor(_ed);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (editor) {
+      if (props.contentHTML) {
+        editor.blocks.renderFromHTML(props.contentHTML); //load from HTML
+      } else {
+        editor.clear(); //clear everything
+      }
+
+    } else {
+      console.log(`Editor is not initialized.`);
+    }
+  }, [props.contentHTML]);
+
+  React.useImperativeHandle(ref, () => (editor as EditorJS));
+  
+  return (
+    <React.Fragment>
+      <div id={props.id ?? edjsID} style={props.style}></div>
+    </React.Fragment>
+  );
+});

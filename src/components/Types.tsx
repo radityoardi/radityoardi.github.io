@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import * as Fluent from '@fluentui/react';
 import * as Router from 'react-router-dom';
+import EditorJS, { API } from '@editorjs/editorjs';
+import { Styles } from '@editorjs/editorjs/types/api';
 
 
 export interface IIconButtonProps extends Omit<Fluent.IButtonProps, "href"> {
@@ -34,6 +36,8 @@ export interface IDocumentCardProps extends Omit<Fluent.IDocumentCardProps, "onC
 export interface IGoogleAccount {
   authenticated?: React.ReactNode;
   unauthenticated?: React.ReactNode;
+  authenticatedHeader?: React.ReactNode;
+  unauthenticatedHeader?: React.ReactNode;
   scopes?: string | string[] | undefined;
 }
 
@@ -44,6 +48,17 @@ export interface IGoogleProfile {
   name: string,
   givenName: string,
   familyName: string,
+}
+
+export interface IEditorJs {
+  Blocks?: any,
+  contentHTML?: string,
+  id?: string,
+  autofocus?: boolean,
+  style?: CSSProperties,
+  editorJsStyles?: Styles,
+  onChange?(api: API, event: CustomEvent<any>): void,
+  onReady?(): void,
 }
 
 export type GoogleProfile = IGoogleProfile | undefined;

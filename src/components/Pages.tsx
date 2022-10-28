@@ -1,8 +1,10 @@
 import React from 'react';
 import * as Fluent from '@fluentui/react';
+import * as MUI from '@mui/material';
 import * as Hooks from '@fluentui/react-hooks';
 import * as Router from 'react-router-dom';
 import * as styles from '../App.styles';
+import * as Types from './Types';
 import * as Utility from './utils/Utility';
 import * as Controls from './Controls';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +15,11 @@ import * as Configs from './configs/config';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { GoogleUserContext } from './utils/GoogleUserContext';
 import { gapi } from 'gapi-script';
+import he from 'he';
+import * as datefunctions from 'date-fns';
+import EditorJS, { API } from '@editorjs/editorjs';
+import edjsParser from 'editorjs-parser';
+
 
 const fbBaseCommentHref = () => {
 	return document.location.origin !== process.env.REACT_APP_FBCOMMENT_BASEURL ? `${process.env.REACT_APP_FBCOMMENT_BASEURL}/${(new URL(document.location.href)).hash}` : document.location.href;
@@ -486,41 +493,263 @@ export const URIEncodeDecode: React.FunctionComponent = () => {
 
 export const BloggerEditor: React.FunctionComponent = () => {
 	const { profile, setProfile } = React.useContext(GoogleUserContext);
-	const [headers, setHeaders] = React.useState([]);
-	const apiKey = process.env.REACT_APP_GOOGLEAPI_KEY;
+	const [expanded, setExpanded] = React.useState<string | false>(false);
+
+	const [myBlogs, setMyBlogs] = React.useState([]);
+	const [activeBlog, setActiveBlog] = React.useState<any>();
+	const [myPosts, setMyPosts] = React.useState([]);
+	const [activePost, setActivePost] = React.useState<any>();
+
+	const [nextPageToken, setNextPageToken] = React.useState<string>();
+	const [prevPageToken, setPrevPageToken] = React.useState<string>();
+
+	const parser = React.useRef(new edjsParser());
+
+	const blogsID = Hooks.useId('blogs'), articlesID = Hooks.useId('articles'), editorID = Hooks.useId('editor');
+	const editor = React.createRef<EditorJS>();
+	let txtBlogTitle = React.createRef<Fluent.ITextField>();
+
+	const blogsColumns: Fluent.IColumn[] = [
+		{ key: 'name', name: 'Blog Name', fieldName: 'name', minWidth: 100, maxWidth: 400, isResizable: true },
+		{ key: 'description', name: 'Description', fieldName: 'description', minWidth: 100, maxWidth: 500, isResizable: true },
+		{
+			key: 'actions', name: 'Actions', minWidth: 25, maxWidth: 75, isResizable: false,
+			onRender: (item?: any, index?: number, column?: Fluent.IColumn) => {
+				return (<Fluent.IconButton iconProps={{ iconName: `DoubleChevronDown8` }} title={`Select this blog and proceed to post list.`} onClick={onSelectBlog(item)}></Fluent.IconButton>);
+			}
+		},
+	];
+	const postsColumns: Fluent.IColumn[] = [
+		{
+			key: 'imageRef', name: '', minWidth: 100, maxWidth: 100, isResizable: false,
+			onRender: (item?: any, index?: number, column?: Fluent.IColumn) => {
+				const firstImg = item.images && item.images.length > 0 && item.images[0].url;
+				return (<Fluent.Image src={firstImg} imageFit={Fluent.ImageFit.centerContain} height={50} />);
+			}
+		},
+		{ key: 'name', name: 'Title', fieldName: 'title', minWidth: 100, maxWidth: 400, isResizable: true },
+		{
+			key: 'publishedDate', name: 'Published', minWidth: 100, maxWidth: 200, isResizable: true,
+			onRender: (item?: any, index?: number, column?: Fluent.IColumn) => {
+				const pubDate = item.published ? datefunctions.format(new Date(item.published), `dd MMM yyyy KK:mm`) : ``;
+				return (<Fluent.Text block nowrap variant={`xSmall`}>{pubDate}</Fluent.Text>);
+			}
+		},
+		{
+			key: 'author', name: 'Author', minWidth: 100, maxWidth: 200, isResizable: true,
+			onRender: (item?: any, index?: number, column?: Fluent.IColumn) => {
+				return (<Fluent.Persona size={Fluent.PersonaSize.size24} text={item.author && item.author.displayName}></Fluent.Persona>);
+			}
+		},
+		{
+			key: 'actions', name: 'Actions', minWidth: 25, maxWidth: 25, isResizable: false,
+			onRender: (item?: any, index?: number, column?: Fluent.IColumn) => {
+				return (<Fluent.IconButton iconProps={{ iconName: `EditNote` }} title={`Edit this post.`} onClick={onSelectPost(item)}></Fluent.IconButton>);
+			}
+		},
+	];
+
+	const postsCommandBar: Fluent.ICommandBarItemProps[] = [
+		{
+			key: `newpost`,
+			text: `New Post`,
+			iconProps: { iconName: `Add` },
+			onClick: (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
+				setActivePost(undefined);
+				setExpanded(editorID);
+			}
+		},
+		{
+			key: `editpost`,
+			text: `Edit`,
+			iconProps: { iconName: `EditNote` }
+		},
+	];
+
+	const postEditorCommandBar: Fluent.ICommandBarItemProps[] = [
+		{
+			key: `savepostdraft`,
+			text: `Save as Draft`,
+			iconProps: { iconName: `Save` },
+			onClick: async (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
+				if (gapi.client && gapi.client.blogger) {
+					const parsedHTML = await extractHtml();
+					gapi.client.blogger.posts.update({
+						blogId: activeBlog.id,
+						postId: activePost.id,
+						title: txtBlogTitle.current?.value,
+						content: parsedHTML,
+					}).then((res: any) => {
+						console.log(res);
+					});
+				}
+			}
+		},
+		{
+			key: `cleareditor`,
+			text: `Clear`,
+			iconProps: { iconName: `Delete` },
+			onClick: (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
+				editor.current?.clear();
+			}
+		},
+		{
+			key: `publish`,
+			text: `Publish`,
+			iconProps: { iconName: `PublishContent` },
+			onClick: async (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
+				if (gapi.client && gapi.client.blogger) {
+					const parsedHTML = await extractHtml();
+					gapi.client.blogger.posts.publish({
+						blogId: activeBlog.id,
+						postId: activePost.id,
+						title: txtBlogTitle.current?.value,
+						content: parsedHTML,
+					}).then((res: any) => {
+						console.log(res);
+					});
+				}
+			}
+		},
+	];
+
+	const loadBlogs = (userId?: string) => {
+		return gapi.client.blogger.blogs.listByUser({
+			userId: userId ?? `self`
+		});
+	};
+
+	const loadPosts = (blogID: string) => {
+		return gapi.client.blogger.posts.list({
+			blogId: blogID,
+			fetchImages: true,
+			status: [`DRAFT`, `LIVE`, `SCHEDULED`],
+		});
+	};
+
+	const onAccordionExpand = (current: string) => (event: React.SyntheticEvent<Element, Event>, isExpanded: boolean) => {
+		setExpanded(expanded ? current : false);
+		if (current === blogsID) {
+			setActivePost(undefined);
+			setActiveBlog(undefined);
+		} else if (current === articlesID) {
+			setActivePost(undefined);
+		} else if (current === editorID) {
+			setActivePost(undefined);
+		}
+	};
+
+	const onSelectBlog = (ab: any) => (event: any) => {
+		setActiveBlog(ab);
+		if (gapi.client && gapi.client.blogger) {
+			loadPosts(ab.id).then((res: any) => {
+				setMyPosts(res.result.items);
+				setExpanded(articlesID);
+			});
+		}
+	};
+
+	const onSelectPost = (p: any) => (event: any) => {
+		setActivePost(p);
+		setExpanded(editorID);
+
+	};
+
+	const extractHtml = () => {
+		return editor.current?.saver.save().then((output: any) => {
+			return parser.current.parse(output);
+		});
+	};
 
 	React.useEffect(() => {
-		const auth2 = gapi.auth2?.getAuthInstance();
-	}, []);
+		if (gapi.client && gapi.client.blogger && profile) {
+			loadBlogs().then((res: any) => {
+				if (res && res.result && res.result.items && res.result.items.length > 0) {
+					setMyBlogs(res.result.items);
+					setExpanded(blogsID);
+				}
+			});
+		}
+	}, [gapi.client, profile]);
 
 	return (
 		<React.Fragment>
 			<h1>Google Blogger</h1>
-			<Controls.GoogleAccount
-				authenticated={
-					<React.Fragment>
+			<div className={`blogger`}>
+				<Controls.GoogleAccount
+					authenticatedHeader={
 						<Controls.CommonGoogleAuthenticated />
-						<Fluent.CompoundButton onClick={() => {
-							//console.log(gapi);
-							gapi.client.blogger.blogs.listByUser({
-								userId: `self`
-							}).then((res:any) => {
-								console.log(res);
-							});
-						}}>
-							Get Status
-						</Fluent.CompoundButton>
-						<Fluent.Text>
-							{profile?.googleId}
-						</Fluent.Text>
-					</React.Fragment>
-				}
-				unauthenticated={
-					<React.Fragment>
+					}
+					authenticated={
+						<React.Fragment>
+							<Fluent.Stack tokens={{ childrenGap: 20 }}>
+								<Fluent.StackItem>
+									<MUI.Accordion id={blogsID} onChange={onAccordionExpand(blogsID)} expanded={expanded === blogsID}>
+										<MUI.AccordionSummary style={styles.bloggerEditorHeader}>
+											My Blogs
+										</MUI.AccordionSummary>
+										<MUI.AccordionDetails>
+											<Fluent.DetailsList compact columns={blogsColumns} items={myBlogs} selectionMode={Fluent.SelectionMode.single}>
+											</Fluent.DetailsList>
+										</MUI.AccordionDetails>
+									</MUI.Accordion>
+								</Fluent.StackItem>
+								<Fluent.StackItem>
+									<MUI.Accordion id={articlesID} onChange={onAccordionExpand(articlesID)} expanded={expanded === articlesID}>
+										<MUI.AccordionSummary style={styles.bloggerEditorHeader}>
+											My Articles {activeBlog && activeBlog.name && ` on ${activeBlog.name}`}
+										</MUI.AccordionSummary>
+										<MUI.AccordionDetails>
+											<Fluent.CommandBar items={postsCommandBar} />
+											<Fluent.DetailsList compact columns={postsColumns} items={myPosts} />
+										</MUI.AccordionDetails>
+									</MUI.Accordion>
+								</Fluent.StackItem>
+								<Fluent.StackItem>
+									<MUI.Accordion id={editorID} onChange={onAccordionExpand(editorID)} expanded={expanded === editorID}>
+										<MUI.AccordionSummary style={styles.bloggerEditorHeader}>
+											Blog Editor
+										</MUI.AccordionSummary>
+										<MUI.AccordionDetails>
+											<Fluent.Stack>
+												<Fluent.StackItem>
+													<Fluent.TextField
+														key={(activePost && activePost.id) ?? `newpost`}
+														componentRef={txtBlogTitle}
+														defaultValue={activePost && activePost.title} underlined
+														iconProps={{ iconName: `CommentSolid` }} />
+												</Fluent.StackItem>
+												<Fluent.StackItem>
+													<Fluent.CommandBar items={postEditorCommandBar} />
+												</Fluent.StackItem>
+												<Fluent.StackItem grow disableShrink>
+													<Controls.ReactEditor
+														contentHTML={activePost && activePost.content}
+														style={styles.reactEditor}
+														ref={editor}
+													/>
+												</Fluent.StackItem>
+												<Fluent.StackItem>
+													<Fluent.CommandBar items={postEditorCommandBar} />
+												</Fluent.StackItem>
+											</Fluent.Stack>
+
+										</MUI.AccordionDetails>
+									</MUI.Accordion>
+								</Fluent.StackItem>
+
+							</Fluent.Stack>
+						</React.Fragment>
+					}
+					unauthenticatedHeader={
 						<Controls.CommonGoogleUnauthenticated />
-					</React.Fragment>
-				}
-			/>
+					}
+					unauthenticated={
+						<React.Fragment>
+						</React.Fragment>
+					}
+				/>
+			</div>
 		</React.Fragment>
 	);
 };

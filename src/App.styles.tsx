@@ -224,3 +224,15 @@ export const blogTag: Fluent.IStackItemStyles = {
     color: appTheme.palette.themeLight
   }
 };
+
+export const bloggerEditorHeader: CSSProperties = {
+  backgroundColor: appTheme.palette.themeLight
+};
+
+export const reactEditor: CSSProperties = {
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: appTheme.palette.themeLight,
+  minHeight: 500,
+};
+
