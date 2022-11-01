@@ -267,6 +267,7 @@ export const GoogleAccount: React.FunctionComponent<Types.IGoogleAccount> = (ga:
                 <Fluent.StackItem disableShrink>
                   <G.GoogleLogout
                     clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
+                    buttonText={`Logout`}
                     onLogoutSuccess={() => {
                       setProfile(undefined);
                     }}
@@ -287,6 +288,7 @@ export const GoogleAccount: React.FunctionComponent<Types.IGoogleAccount> = (ga:
                 <Fluent.StackItem disableShrink>
                   <G.GoogleLogin
                     clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string}
+                    buttonText={`Login`}
                     onSuccess={(res: any) => {
                       setProfile(res.profileObj);
                       fetch(res.profileObj.imageUrl, { headers: { 'Origin': process.env.REACT_APP_AZUREAD_APP_REDIRECTURL as string } });
@@ -316,7 +318,7 @@ export const CommonGoogleAuthenticated: React.FunctionComponent = () => {
   const { profile, setProfile } = React.useContext(GoogleUserContext);
   return (
     <React.Fragment>
-      <Fluent.Persona text={profile?.name} imageUrl={profile?.imageUrl} secondaryText={profile?.email} />
+      <Fluent.Persona text={profile?.name} imageUrl={profile?.imageUrl} secondaryText={profile?.email} size={Fluent.PersonaSize.size24} />
     </React.Fragment>
   );
 };
@@ -458,9 +460,12 @@ export const ReactEditor = React.forwardRef<EditorJS, Types.IEditorJs>((props: T
   }, [props.contentHTML]);
 
   React.useImperativeHandle(ref, () => (editor as EditorJS));
-  
+
   return (
     <React.Fragment>
+      <Fluent.Label>
+        {props.label}
+      </Fluent.Label>
       <div id={props.id ?? edjsID} style={props.style}></div>
     </React.Fragment>
   );

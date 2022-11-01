@@ -542,9 +542,14 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			}
 		},
 		{
-			key: 'actions', name: 'Actions', minWidth: 25, maxWidth: 25, isResizable: false,
+			key: 'actions', name: 'Actions', minWidth: 70, maxWidth: 70, isResizable: false,
 			onRender: (item?: any, index?: number, column?: Fluent.IColumn) => {
-				return (<Fluent.IconButton iconProps={{ iconName: `EditNote` }} title={`Edit this post.`} onClick={onSelectPost(item)}></Fluent.IconButton>);
+				return (
+					<Fluent.Stack tokens={{ childrenGap: 10 }} horizontal>
+						<Fluent.IconButton iconProps={{ iconName: `EditNote` }} title={`Edit this post.`} onClick={onSelectPost(item)}></Fluent.IconButton>
+						<Fluent.IconButton iconProps={{ iconName: `RedEye` }} title={`View post.`} src={item.url}></Fluent.IconButton>
+					</Fluent.Stack>
+				);
 			}
 		},
 	];
@@ -556,13 +561,15 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			iconProps: { iconName: `Add` },
 			onClick: (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
 				setActivePost(undefined);
+				editor.current?.clear();
 				setExpanded(editorID);
 			}
 		},
 		{
 			key: `editpost`,
 			text: `Edit`,
-			iconProps: { iconName: `EditNote` }
+			iconProps: { iconName: `EditNote` },
+			disabled: true
 		},
 	];
 
@@ -574,14 +581,24 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			onClick: async (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
 				if (gapi.client && gapi.client.blogger) {
 					const parsedHTML = await extractHtml();
-					gapi.client.blogger.posts.update({
-						blogId: activeBlog.id,
-						postId: activePost.id,
-						title: txtBlogTitle.current?.value,
-						content: parsedHTML,
-					}).then((res: any) => {
-						console.log(res);
-					});
+					if (activePost) {
+						gapi.client.blogger.posts.update({
+							blogId: activeBlog.id,
+							postId: activePost.id,
+							title: txtBlogTitle.current?.value,
+							content: parsedHTML,
+						}).then((res: any) => {
+							console.log(res);
+						});
+					} else {
+						gapi.client.blogger.posts.insert({
+							blogId: activeBlog.id,
+							title: txtBlogTitle.current?.value,
+							content: parsedHTML,
+						}).then((res: any) => {
+							setActivePost(res.result);
+						});
+					}
 				}
 			}
 		},
@@ -607,6 +624,9 @@ export const BloggerEditor: React.FunctionComponent = () => {
 						content: parsedHTML,
 					}).then((res: any) => {
 						console.log(res);
+						setActivePost(undefined);
+						setActiveBlog(undefined);
+						setExpanded(blogsID);
 					});
 				}
 			}
@@ -650,6 +670,7 @@ export const BloggerEditor: React.FunctionComponent = () => {
 	};
 
 	const onSelectPost = (p: any) => (event: any) => {
+		console.log(p);
 		setActivePost(p);
 		setExpanded(editorID);
 
@@ -674,7 +695,7 @@ export const BloggerEditor: React.FunctionComponent = () => {
 
 	return (
 		<React.Fragment>
-			<h1>Google Blogger</h1>
+			<h1>Blogger Editor</h1>
 			<div className={`blogger`}>
 				<Controls.GoogleAccount
 					authenticatedHeader={
@@ -684,12 +705,33 @@ export const BloggerEditor: React.FunctionComponent = () => {
 						<React.Fragment>
 							<Fluent.Stack tokens={{ childrenGap: 20 }}>
 								<Fluent.StackItem>
+									<Fluent.MessageBar messageBarType={Fluent.MessageBarType.warning}>
+										<p>
+											Since Blogger Editor is in beta, there might be some issues.
+										</p>
+										<ul>
+											<li>
+												Direct image uploading is not supported, but you can paste a public-accessible image URL in the editor directly,
+												and the editor will be able to render as the usual images.
+
+											</li>
+											<li>
+												Google login works for only 1 hour and there still some issues with login state. If something is not
+												working, you can press Ctrl + F5 to refresh the entire page.
+											</li>
+										</ul>
+										<p>
+											Other than that, the entire normal usage (save draft, publish, new blog) are working just fine.
+										</p>
+									</Fluent.MessageBar>
+								</Fluent.StackItem>
+								<Fluent.StackItem>
 									<MUI.Accordion id={blogsID} onChange={onAccordionExpand(blogsID)} expanded={expanded === blogsID}>
 										<MUI.AccordionSummary style={styles.bloggerEditorHeader}>
 											My Blogs
 										</MUI.AccordionSummary>
 										<MUI.AccordionDetails>
-											<Fluent.DetailsList compact columns={blogsColumns} items={myBlogs} selectionMode={Fluent.SelectionMode.single}>
+											<Fluent.DetailsList compact columns={blogsColumns} items={myBlogs} selectionMode={Fluent.SelectionMode.single} checkboxVisibility={Fluent.CheckboxVisibility.hidden}>
 											</Fluent.DetailsList>
 										</MUI.AccordionDetails>
 									</MUI.Accordion>
@@ -701,7 +743,7 @@ export const BloggerEditor: React.FunctionComponent = () => {
 										</MUI.AccordionSummary>
 										<MUI.AccordionDetails>
 											<Fluent.CommandBar items={postsCommandBar} />
-											<Fluent.DetailsList compact columns={postsColumns} items={myPosts} />
+											<Fluent.DetailsList compact columns={postsColumns} items={myPosts} checkboxVisibility={Fluent.CheckboxVisibility.hidden} />
 										</MUI.AccordionDetails>
 									</MUI.Accordion>
 								</Fluent.StackItem>
@@ -714,16 +756,15 @@ export const BloggerEditor: React.FunctionComponent = () => {
 											<Fluent.Stack>
 												<Fluent.StackItem>
 													<Fluent.TextField
-														key={(activePost && activePost.id) ?? `newpost`}
+														key={(activePost && `${activePost.id}-title`) ?? `newpost-title-${uuidv4()}`}
 														componentRef={txtBlogTitle}
+														label={`Blog Title`}
 														defaultValue={activePost && activePost.title} underlined
 														iconProps={{ iconName: `CommentSolid` }} />
 												</Fluent.StackItem>
-												<Fluent.StackItem>
-													<Fluent.CommandBar items={postEditorCommandBar} />
-												</Fluent.StackItem>
 												<Fluent.StackItem grow disableShrink>
 													<Controls.ReactEditor
+														label={`Blog Editor`}
 														contentHTML={activePost && activePost.content}
 														style={styles.reactEditor}
 														ref={editor}
@@ -737,7 +778,6 @@ export const BloggerEditor: React.FunctionComponent = () => {
 										</MUI.AccordionDetails>
 									</MUI.Accordion>
 								</Fluent.StackItem>
-
 							</Fluent.Stack>
 						</React.Fragment>
 					}

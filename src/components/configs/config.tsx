@@ -156,20 +156,11 @@ export const config = {
 				{
 					pageTitle: "Blogger",
 					iconName: "page",
-					label: "Blogger",
-					toolTip: "Write your own blog with my editor (requires app permission).",
+					label: "Blogger Editor (Beta)",
+					toolTip: "Write your own blog in Google Blogger with my editor (requires app permission).",
 					url: `/google/blogger`,
 					key: uuidv4(),
 					pageComponent: <Pages.BloggerEditor />
-				},
-				{
-					pageTitle: "Drive",
-					iconName: "page",
-					label: "Drive",
-					toolTip: "Write your own blog with my editor (requires app permission).",
-					url: `/google/drive`,
-					key: uuidv4(),
-					pageComponent: <Pages.DriveEditor />
 				},
 			])
 		},

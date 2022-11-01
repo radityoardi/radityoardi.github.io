@@ -15,3 +15,14 @@ export const uploadAsBase64 = (file: File) => {
         console.log(file);
     });
 };
+
+export const uploadByURL = (file: string) => {
+    return new Promise((resolve, reject) => {
+        resolve({
+            success: 1,
+            file: {
+                url: file,
+            }
+        });
+    });
+};

@@ -9,7 +9,7 @@ import Header from "@editorjs/header";
 import Quote from "@editorjs/quote";
 import InlineCode from "@editorjs/inline-code";
 import SimpleImage from "@editorjs/simple-image";
-import { uploadAsBase64 } from "./GDriveImages";
+import { uploadAsBase64, uploadByURL } from "./GDriveImages";
 
 export const Blocks = {
   embed: Embed,
@@ -24,10 +24,11 @@ export const Blocks = {
     class: Image,
     config: {
       uploader: {
-        uploadByFile: uploadAsBase64
+        uploadByFile: uploadAsBase64,
+        uploadByUrl: uploadByURL
       }
     }
   },
   quote: Quote,
-  simpleImage: SimpleImage
+  //simpleImage: SimpleImage
 };

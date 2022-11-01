@@ -56,6 +56,7 @@ export interface IEditorJs {
   id?: string,
   autofocus?: boolean,
   style?: CSSProperties,
+  label?: string,
   editorJsStyles?: Styles,
   onChange?(api: API, event: CustomEvent<any>): void,
   onReady?(): void,
