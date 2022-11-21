@@ -65,8 +65,9 @@ export const BlogList: React.FunctionComponent = () => {
 
 	const LoadBlogList = () => {
 		setIsLoading(true);
-		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?key=${bloggerAPIKey}&maxResults=12${(pageToken ? `&pageToken=${pageToken}` : ``)}`;
+		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts?fetchImages=true&key=${bloggerAPIKey}&maxResults=12${(pageToken ? `&pageToken=${pageToken}` : ``)}`;
 		fetch(fetchUrl).then(response => response.json()).then(data => {
+			console.log(`Blog Data: `, data);
 			setPosts((current: any) => {
 				return { ...data, items: [...current.items, ...data.items] };
 			});
@@ -82,7 +83,7 @@ export const BlogList: React.FunctionComponent = () => {
 	const onSearchBlog = (newvalue: any) => {
 		setIsLoading(true);
 		gtag(`event`, `search`, { search_term: newvalue }); //send to GA
-		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts/search?key=${bloggerAPIKey}&q=${encodeURIComponent(newvalue)}`;
+		const fetchUrl = `https://www.googleapis.com/blogger/v3/blogs/${bloggerID}/posts/search?fetchImages=true&key=${bloggerAPIKey}&q=${encodeURIComponent(newvalue)}`;
 
 		fetch(fetchUrl).then(response => response.json()).then(data => {
 			setPosts(data);
@@ -95,10 +96,10 @@ export const BlogList: React.FunctionComponent = () => {
 				<Fluent.SearchBox placeholder="Search blog posts..." underlined={true} onSearch={onSearchBlog} onClear={() => LoadBlogList()} />
 			</Fluent.Stack>
 			<InfiniteScroll dataLength={posts.items.length} hasMore={true} next={() => { setPageToken(posts.nextPageToken); }} loader={<Fluent.Shimmer />}>
-				<Fluent.Stack horizontal wrap tokens={{ childrenGap: 15 }} className={`blogs`}>
+				<Fluent.Stack key={`blogs-${uuidv4()}`} horizontal wrap tokens={{ childrenGap: 15 }} className={`blogs`}>
 					{
 						posts && posts.items && posts.items.map((item: any) => (
-							<Fluent.StackItem grow key={`bloghead-${item.id}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
+							<Fluent.StackItem grow key={`bloghead-${item.id}-${uuidv4()}`} tokens={{ padding: 20 }} styles={styles.blogItem} className={`blogitem`}>
 								<Controls.RouterLink to={`/blogs/${bloggerID}/${convertFromPermalink(item.url)}`} className={`blogtitlelink`}><h1 className={`blogtitle`}>{item.title}</h1></Controls.RouterLink>
 								<Fluent.Stack horizontal wrap tokens={{ childrenGap: 10 }} className={`blogtags`}>
 									{
@@ -106,8 +107,8 @@ export const BlogList: React.FunctionComponent = () => {
 									}
 								</Fluent.Stack>
 								{
-									firstImageUrl(item.content) && (
-										<Fluent.Image src={firstImageUrl(item.content)?.src} imageFit={Fluent.ImageFit.cover} height={150} styles={styles.blogImage} className={`blogimage`} />
+									item.images && item.images.length && item.images.length > 0 && (
+										<Fluent.Image src={item.images[0].url} imageFit={Fluent.ImageFit.cover} height={150} styles={styles.blogImage} className={`blogimage`} />
 									)
 								}
 								<Fluent.Persona imageUrl={item.author.image.url} text={item.author.displayName} size={Fluent.PersonaSize.size40} secondaryText={`Written on ${(new Date(item.published)).toDateString()}`} />
