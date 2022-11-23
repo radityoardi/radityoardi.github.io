@@ -5,6 +5,7 @@ Create `.env` file with the following format to successfully debug in your envir
 ```
 REACT_APP_AZUREAD_APP_CLIENTID={----}
 REACT_APP_GOOGLEAPI_KEY={----}
+REACT_APP_IMGBB_API_KEY={----}
 REACT_APP_MAINBLOGID={----}
 REACT_APP_VERSION={----}
 REACT_APP_PIXABAYAPI_KEY={----}

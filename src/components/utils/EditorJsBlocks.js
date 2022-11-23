@@ -9,7 +9,7 @@ import Header from "@editorjs/header";
 import Quote from "@editorjs/quote";
 import InlineCode from "@editorjs/inline-code";
 import SimpleImage from "@editorjs/simple-image";
-import { uploadAsBase64, uploadByURL } from "./GDriveImages";
+import { uploadAsBase64, uploadByURL } from "./ImgBBPlugin";
 
 export const Blocks = {
   embed: Embed,
