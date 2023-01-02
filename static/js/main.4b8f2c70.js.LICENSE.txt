@@ -1,0 +1,154 @@
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+/*! @azure/msal-browser v2.22.1 2022-03-07 */
+
+/*! @azure/msal-common v6.1.0 2022-02-08 */
+
+/**
+     * CodeTool for Editor.js
+     *
+     * @author CodeX (team@ifmo.su)
+     * @copyright CodeX 2018
+     * @license MIT
+     * @version 2.0.0
+     */
+
+/**
+     * Header block for the Editor.js.
+     *
+     * @author CodeX (team@ifmo.su)
+     * @copyright CodeX 2018
+     * @license MIT
+     * @version 2.0.0
+     */
+
+/**
+     * Image Tool for the Editor.js
+     *
+     * @author CodeX <team@codex.so>
+     * @license MIT
+     * @see {@link https://github.com/editor-js/image}
+     *
+     * To developers.
+     * To simplify Tool structure, we split it to 4 parts:
+     *  1) index.js — main Tool's interface, public API and methods for working with data
+     *  2) uploader.js — module that has methods for sending files via AJAX: from device, by URL or File pasting
+     *  3) ui.js — module for UI manipulations: render, showing preloader, etc
+     *  4) tunes.js — working with Block Tunes: render buttons, handle clicks
+     *
+     * For debug purposes there is a testing server
+     * that can save uploaded files and return a Response {@link UploadResponseFormat}
+     *
+     *       $ node dev/server.js
+     *
+     * It will expose 8008 port, so you can pass http://localhost:8008 with the Tools config:
+     *
+     * image: {
+     *   class: ImageTool,
+     *   config: {
+     *     endpoints: {
+     *       byFile: 'http://localhost:8008/uploadFile',
+     *       byUrl: 'http://localhost:8008/fetchUrl',
+     *     }
+     *   },
+     * },
+     */
+
+/**
+     * Raw HTML Tool for CodeX Editor
+     *
+     * @author CodeX (team@codex.so)
+     * @copyright CodeX 2018
+     * @license The MIT License (MIT)
+     */
+
+/**
+ * @license React
+ * react-is.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * React Router v6.2.2
+ *
+ * Copyright (c) Remix Software Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE.md file in the root directory of this source tree.
+ *
+ * @license MIT
+ */
+
+/** @license MUI v5.10.8
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license React v0.20.2
+ * scheduler.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license React v16.13.1
+ * react-is.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license React v17.0.2
+ * react-dom.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license React v17.0.2
+ * react-jsx-runtime.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license React v17.0.2
+ * react.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
