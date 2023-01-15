@@ -186,6 +186,23 @@ export const config = {
 					pageComponent: <Pages.TermsOfService />
 				}
 			])
-		}
+		},
+		/*
+		{
+			label: "Testing only",
+			type: Types.CommandType.Heading,
+			key: uuidv4(),
+			submenu: new List<IAppMenu>([
+				{
+					pageTitle: "Tag Editor",
+					iconName: "page",
+					label: "Tag Editor",
+					url: `/tag-editor`,
+					key: uuidv4(),
+					pageComponent: <Pages.TagEditorPage />
+				},
+			])
+		},
+		*/
 	])
 };

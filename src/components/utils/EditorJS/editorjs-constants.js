@@ -9,13 +9,20 @@ import Header from "@editorjs/header";
 import Quote from "@editorjs/quote";
 import InlineCode from "@editorjs/inline-code";
 import SimpleImage from "@editorjs/simple-image";
-import { uploadAsBase64, uploadByURL } from "./ImgBBPlugin";
+import { uploadAsBase64, uploadByURL } from "../ImgBBPlugin";
+import { sanitizeHtml } from "./editorjs-stringutils";
+import HLJSCodeTool from "./editorjs-code";
 
 export const Blocks = {
   embed: Embed,
   table: Table,
   list: List,
-  code: Code,
+  code: {
+    class: HLJSCodeTool,
+    config: {
+      placeholder: 'write or paste your code'
+    },
+  },
   linkTool: LinkTool,
   raw: Raw,
   header: Header,
@@ -32,3 +39,11 @@ export const Blocks = {
   quote: Quote,
   //simpleImage: SimpleImage
 };
+
+export const customEdjsParsers = {
+  code: (data, config) => {
+      const markup = sanitizeHtml(data.code);
+      return `<pre language="${data.language}"><code class="${data.language}">${markup}</code></pre>`;
+  },
+}
+

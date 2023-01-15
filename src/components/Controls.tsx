@@ -3,6 +3,7 @@ import * as Fluent from '@fluentui/react';
 import * as MUI from '@mui/material';
 import * as Router from 'react-router-dom';
 import * as Types from './Types';
+import * as styles from '../App.styles';
 import * as MyHooks from './Hooks';
 import * as codeStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import SyntaxHighlighter, { SyntaxHighlighterProps } from 'react-syntax-highlighter';
@@ -16,7 +17,8 @@ import * as G from 'react-google-login';
 import { gapi } from 'gapi-script';
 import { GoogleUserContext } from './utils/GoogleUserContext';
 import EditorJS, { API } from '@editorjs/editorjs';
-import { Blocks } from './utils/EditorJsBlocks';
+import { Blocks } from './utils/EditorJS/editorjs-constants';
+import e from 'express';
 
 export const RouterIconButton = React.forwardRef<Fluent.IconButton, Types.IIconButtonProps>(
   function ButtonWithRef(
@@ -243,15 +245,14 @@ export const GoogleAccount: React.FunctionComponent<Types.IGoogleAccount> = (ga:
   const { profile, setProfile } = React.useContext(GoogleUserContext);
 
   React.useEffect(() => {
-    const initClient = () => {
+    gapi.load('client:auth2', () => {
       gapi.client.init({
         clientId: process.env.REACT_APP_GOOGLE_OAUTH_CLIENTID as string,
         scope: process.env.REACT_APP_GOOGLE_OAUTH_SCOPES as string,
         apiKey: process.env.REACT_APP_GOOGLEAPI_KEY as string,
         discoveryDocs: (process.env.REACT_APP_GOOGLE_OAUTH_DISCOVERYDOCS as string).split(` `)
       });
-    };
-    gapi.load('client:auth2', initClient);
+    });
   }, []);
 
   return (
@@ -439,8 +440,9 @@ export const ReactEditor = React.forwardRef<EditorJS, Types.IEditorJs>((props: T
           ...Blocks,
           ...props.Blocks,
         },
-        autofocus: props.autofocus ?? false
+        autofocus: props.autofocus ?? false,
       });
+      console.log(_ed);
       _ed.styles = props.editorJsStyles ?? _ed.styles;
       setEditor(_ed);
     }
@@ -470,3 +472,91 @@ export const ReactEditor = React.forwardRef<EditorJS, Types.IEditorJs>((props: T
     </React.Fragment>
   );
 });
+
+
+export const TagEditor: React.FunctionComponent<Types.ITagEditorProps> = (props: Types.ITagEditorProps) => {
+  const txtRef = React.createRef<Fluent.ITextField>();
+  const [text, setText] = React.useState<string|undefined>("");
+  const [update, setUpdate] = React.useState<boolean>(false);
+  //const [tags, setTags] = React.useState<string[]>(props.tags);
+  const tags = React.useRef<string[]>(props.tags);
+
+  const forceUpdate = () => {
+    setUpdate(!update);
+  };
+
+  const tageditorTags: Fluent.IStackItemStyles = {
+    root: {
+      backgroundColor: styles.appTheme.palette.themeDark,
+      color: styles.appTheme.palette.themeLight,
+      padding: 5,
+      borderRadius: 5,
+      justifyContent: 'center'
+    }
+  };
+  const tageditorTagsInside: Fluent.IStackItemStyles = {
+    root: {
+      justifyContent: 'center'
+    }
+  };
+  const onKeyDown = (event?: React.KeyboardEvent) => {
+    /*
+    */
+    if (event?.key == "Enter") {
+      //tags.current = [...tags.current, text as string];
+      if (tags.current === undefined) {
+        tags.current = [];
+      }
+      tags.current.push(text as string);
+      setText(""); //set text to empty
+      if (props.onChange != undefined) {
+        props.onChange(tags.current);
+      }
+    }
+  };
+  const onChange = (event?: React.FormEvent, newValue?: string) => {
+    setText(newValue);
+  };
+
+  const onRemove = (item: string) => (event:any) => {
+    var _index = tags.current.indexOf(item);
+    if (_index > -1) {
+      tags.current.splice(_index, 1);
+      if (props.onChange != undefined) {
+        props.onChange(tags.current);
+      }
+      forceUpdate();
+    }
+  };
+
+  React.useEffect(() => {
+    tags.current = props.tags;
+    forceUpdate();
+  }, [props.tags]);
+
+  return (
+    <React.Fragment>
+      <Fluent.Stack horizontal horizontalAlign='center' wrap tokens={{ childrenGap: 10 }}>
+        {
+          tags && tags.current && tags.current.length > 0 && tags.current.map((item: string, index: number) => {
+            return (
+              <Fluent.StackItem key={`blogtageditor-${uuidv4()}`} align='center' styles={tageditorTags}>
+                <Fluent.Stack horizontal horizontalAlign='center' wrap tokens={{ childrenGap: 10 }}>
+                  <Fluent.StackItem align='center' styles={tageditorTagsInside}>
+                    {item}
+                  </Fluent.StackItem>
+                  <Fluent.StackItem styles={tageditorTagsInside}>
+                    <Fluent.IconButton iconProps={{ iconName: `Cancel` }} title="Remove" ariaLabel="Remove" onClick={onRemove(item)} />
+                  </Fluent.StackItem>
+                </Fluent.Stack>
+              </Fluent.StackItem>
+            );
+          })
+        }
+        <Fluent.StackItem key={`blogtageditor-input-info`} align='center'>
+          <Fluent.TextField placeholder='add a tag here...' componentRef={txtRef} onKeyDown={onKeyDown} onChange={onChange} value={text} iconProps={{ iconName: `TagSolid` }} />
+        </Fluent.StackItem>
+      </Fluent.Stack>
+    </React.Fragment>
+  );
+};

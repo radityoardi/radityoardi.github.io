@@ -50,6 +50,11 @@ export interface IGoogleProfile {
   familyName: string,
 }
 
+export interface ICommonDialogProps extends Fluent.IDialogProps {
+  duration?: number,
+  showControl?: boolean,
+}
+
 export interface IEditorJs {
   Blocks?: any,
   contentHTML?: string,
@@ -67,6 +72,12 @@ export type GoogleProfile = IGoogleProfile | undefined;
 export interface IGoogleProfileContext {
   profile: GoogleProfile,
   setProfile: React.Dispatch<React.SetStateAction<GoogleProfile>>
+}
+
+export interface ITagEditorProps {
+  tags: string[];
+  //onChange?(event: CustomEvent<any>, newTag: string, tags: string[]): void,
+  onChange?: (newValue?: string[]) => void,
 }
 
 export enum DisplayMode {

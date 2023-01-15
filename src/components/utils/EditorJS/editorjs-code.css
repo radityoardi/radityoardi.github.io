@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css?family=Martian+Mono&display=swap');
+.ce-code__textarea {
+    min-height: 200px;
+    font-family: 'Martian Mono', Consolas, Courier New, monospace;
+    color: #41314e;
+    line-height: 1.6em;
+    font-size: 12px;
+    background: #f8f7fa;
+    border: 1px solid #f1f1f4;
+    box-shadow: none;
+    white-space: pre;
+    word-wrap: normal;
+    overflow-x: auto;
+    resize: vertical;
+}
+
+.ce-code__codeclass {
+    font-family: 'Martian Mono', Consolas, Courier New, monospace;
+    cursor: pointer;
+    border: 1px solid lightgray;
+    padding: 5px;
+    border-radius: 4px;
+    width: 200px;
+    max-width: 100%;
+    margin: 10px 5px;
+    color: gray;
+}
+.ce-code__codeclass:focus {
+    outline: none;
+}
+.ce-code__codeclass OPTION {
+    color: white;
+    background-color: gray;
+}

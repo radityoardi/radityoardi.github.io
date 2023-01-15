@@ -19,6 +19,7 @@ import he from 'he';
 import * as datefunctions from 'date-fns';
 import EditorJS, { API } from '@editorjs/editorjs';
 import edjsParser from 'editorjs-parser';
+import { customEdjsParsers } from './utils/EditorJS/editorjs-constants';
 
 
 const fbBaseCommentHref = () => {
@@ -238,7 +239,7 @@ export const Default: React.FunctionComponent = () => {
 
 	return (
 		<React.Fragment>
-			<img src='ToonRadityoCircle.png' style={myPhoto} />
+			<img src='ToonRadityoCircle.png' alt="Radityo Ardi" style={myPhoto} />
 			<div style={textStyle}>
 				<Controls.RdzMarkdown require={require(`./markdowns/home.md`)} />
 			</div>
@@ -500,11 +501,13 @@ export const BloggerEditor: React.FunctionComponent = () => {
 	const [activeBlog, setActiveBlog] = React.useState<any>();
 	const [myPosts, setMyPosts] = React.useState([]);
 	const [activePost, setActivePost] = React.useState<any>();
+	const [tags, setTags] = React.useState<string[]>([]);
+	const [dialogProps, setDialogProps] = React.useState<Types.ICommonDialogProps>({ hidden: true });
 
 	const [nextPageToken, setNextPageToken] = React.useState<string>();
 	const [prevPageToken, setPrevPageToken] = React.useState<string>();
 
-	const parser = React.useRef(new edjsParser());
+	const parser = React.useRef(new edjsParser(undefined, customEdjsParsers));
 
 	const blogsID = Hooks.useId('blogs'), articlesID = Hooks.useId('articles'), editorID = Hooks.useId('editor');
 	const editor = React.createRef<EditorJS>();
@@ -570,9 +573,64 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			key: `editpost`,
 			text: `Edit`,
 			iconProps: { iconName: `EditNote` },
-			disabled: true
+			onClick: () => {
+				setExpanded(editorID);
+			}
 		},
 	];
+
+	const saveOrCreatePost = async () => {
+		if (gapi.client && gapi.client.blogger) {
+			const parsedHTML = await extractHtml();
+			const postData = {
+				blogId: activeBlog.id,
+				content: parsedHTML,
+				title: activePost.title,
+				labels: activePost.labels,
+			};
+			if (activePost) {
+				return gapi.client.blogger.posts.update({
+					...postData,
+					postId: activePost.id,
+				}).then((res: any) => {
+					setActivePost(res.result);
+				});
+			} else {
+				return gapi.client.blogger.posts.insert(postData).then((res: any) => {
+					setActivePost(res.result);
+				});
+			}
+		}
+	};
+
+	const showDialog = (message: string, title?: string, showControl?: boolean) => {
+		setDialogProps({
+			...dialogProps,
+			hidden: false,
+			showControl: showControl,
+			dialogContentProps: {
+				type: Fluent.DialogType.largeHeader,
+				title: title,
+				subText: message,
+			},
+		});
+
+		if (dialogProps.duration !== undefined) {
+			setTimeout(() => {
+				setDialogProps({
+					...dialogProps,
+					hidden: true,
+				});
+			}, dialogProps.duration);
+		}
+	};
+
+	const hideDialog = () => {
+		setDialogProps({
+			...dialogProps,
+			hidden: true,
+		});
+	};
 
 	const postEditorCommandBar: Fluent.ICommandBarItemProps[] = [
 		{
@@ -580,27 +638,8 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			text: `Save as Draft`,
 			iconProps: { iconName: `Save` },
 			onClick: async (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
-				if (gapi.client && gapi.client.blogger) {
-					const parsedHTML = await extractHtml();
-					if (activePost) {
-						gapi.client.blogger.posts.update({
-							blogId: activeBlog.id,
-							postId: activePost.id,
-							title: txtBlogTitle.current?.value,
-							content: parsedHTML,
-						}).then((res: any) => {
-							console.log(res);
-						});
-					} else {
-						gapi.client.blogger.posts.insert({
-							blogId: activeBlog.id,
-							title: txtBlogTitle.current?.value,
-							content: parsedHTML,
-						}).then((res: any) => {
-							setActivePost(res.result);
-						});
-					}
-				}
+				showDialog(`Saving your post...`, `Save`);
+				await saveOrCreatePost().then(hideDialog);
 			}
 		},
 		{
@@ -617,17 +656,20 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			iconProps: { iconName: `PublishContent` },
 			onClick: async (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
 				if (gapi.client && gapi.client.blogger) {
-					const parsedHTML = await extractHtml();
-					gapi.client.blogger.posts.publish({
+					showDialog(`Publishing your post...`, `Publish`);
+					await saveOrCreatePost();
+					const postData = {
 						blogId: activeBlog.id,
 						postId: activePost.id,
-						title: txtBlogTitle.current?.value,
-						content: parsedHTML,
-					}).then((res: any) => {
-						console.log(res);
+					};
+					gapi.client.blogger.posts.publish(postData).then((res: any) => {
 						setActivePost(undefined);
 						setActiveBlog(undefined);
 						setExpanded(blogsID);
+						showDialog(`Your post is published.`, `Publish`, true);
+					}).catch((err: any) => {
+						console.error(err);
+						showDialog(`There's an error publishing your post.`, `Error`, true);
 					});
 				}
 			}
@@ -671,15 +713,19 @@ export const BloggerEditor: React.FunctionComponent = () => {
 	};
 
 	const onSelectPost = (p: any) => (event: any) => {
-		console.log(p);
 		setActivePost(p);
 		setExpanded(editorID);
+	};
 
+	const onActivePostChanged = (item?: any, index?: number, ev?: React.FocusEvent<HTMLElement>) => {
+		setActivePost(item);
 	};
 
 	const extractHtml = () => {
 		return editor.current?.saver.save().then((output: any) => {
-			return parser.current.parse(output);
+			var ret = parser.current.parse(output);
+			console.log(`ret: `, ret, ` output: `, output);
+			return ret;
 		});
 	};
 
@@ -744,7 +790,7 @@ export const BloggerEditor: React.FunctionComponent = () => {
 										</MUI.AccordionSummary>
 										<MUI.AccordionDetails>
 											<Fluent.CommandBar items={postsCommandBar} />
-											<Fluent.DetailsList compact columns={postsColumns} items={myPosts} checkboxVisibility={Fluent.CheckboxVisibility.hidden} />
+											<Fluent.DetailsList compact columns={postsColumns} items={myPosts} checkboxVisibility={Fluent.CheckboxVisibility.hidden} onActiveItemChanged={onActivePostChanged} />
 										</MUI.AccordionDetails>
 									</MUI.Accordion>
 								</Fluent.StackItem>
@@ -756,12 +802,28 @@ export const BloggerEditor: React.FunctionComponent = () => {
 										<MUI.AccordionDetails>
 											<Fluent.Stack>
 												<Fluent.StackItem>
+													<Fluent.Label>Blog Title</Fluent.Label>
 													<Fluent.TextField
 														key={(activePost && `${activePost.id}-title`) ?? `newpost-title-${uuidv4()}`}
 														componentRef={txtBlogTitle}
-														label={`Blog Title`}
-														defaultValue={activePost && activePost.title} underlined
+														value={activePost && activePost.title}
+														onChange={(ev: any, newText?: string) => {
+															setActivePost({
+																...activePost,
+																title: newText,
+															});
+														}}
+														underlined
 														iconProps={{ iconName: `CommentSolid` }} />
+												</Fluent.StackItem>
+												<Fluent.StackItem>
+													<Fluent.Label>Blog Tags</Fluent.Label>
+													<Controls.TagEditor tags={activePost && activePost.labels} onChange={(tags) => {
+														setActivePost({
+															...activePost,
+															labels: tags,
+														});
+													}} />
 												</Fluent.StackItem>
 												<Fluent.StackItem grow disableShrink>
 													<Controls.ReactEditor
@@ -775,11 +837,17 @@ export const BloggerEditor: React.FunctionComponent = () => {
 													<Fluent.CommandBar items={postEditorCommandBar} />
 												</Fluent.StackItem>
 											</Fluent.Stack>
-
 										</MUI.AccordionDetails>
 									</MUI.Accordion>
 								</Fluent.StackItem>
 							</Fluent.Stack>
+							<Fluent.Dialog {...dialogProps}>
+								{dialogProps.showControl && (
+									<Fluent.DialogFooter>
+										<Fluent.PrimaryButton text='OK' onClick={() => hideDialog()} />
+									</Fluent.DialogFooter>
+								)}
+							</Fluent.Dialog>
 						</React.Fragment>
 					}
 					unauthenticatedHeader={
@@ -811,6 +879,43 @@ export const DriveEditor: React.FunctionComponent = () => {
 					</React.Fragment>
 				}
 			/>
+		</React.Fragment>
+	);
+};
+
+
+export const TagEditorPage: React.FunctionComponent = () => {
+	//this page variable
+	const [text, setText] = React.useState<string>("");
+	const [tags, setTags] = React.useState<string[]>([
+		"C#",
+		"SharePoint",
+		"Database",
+	]);
+
+	/*
+	React.useEffect(() => {
+		setTags([
+			"C#",
+			"SharePoint",
+			"Database",
+		]);
+	}, []);
+	*/
+
+	//variable to be incorporated with the control
+
+	return (
+		<React.Fragment>
+			{text}
+			<Controls.TagEditor tags={tags} onChange={(tg) => {
+				if (tg) {
+					setText(`Values from outside: ${tg.join(', ')}`);
+					setTags(tg);
+					console.log(`changed, now ${tg.length} element(s)`);
+				}
+			}} />
+			<Fluent.PrimaryButton text='Click' onClick={() => { setTags([...tags, "Mama", "Papa", "Sambel"]); }} />
 		</React.Fragment>
 	);
 };

@@ -1,6 +1,6 @@
 {
   "name": "rdz-tools",
-  "version": "0.34.0",
+  "version": "0.37.0",
   "private": true,
   "homepage": "https://radityoardi.github.io",
   "devDependencies": {
