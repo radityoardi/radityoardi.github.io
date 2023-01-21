@@ -579,7 +579,7 @@ export const BloggerEditor: React.FunctionComponent = () => {
 		},
 	];
 
-	const saveOrCreatePost = async () => {
+	const saveOrCreatePost = async (isDraft: boolean = true) => {
 		if (gapi.client && gapi.client.blogger) {
 			const parsedHTML = await extractHtml();
 			const postData = {
@@ -587,17 +587,23 @@ export const BloggerEditor: React.FunctionComponent = () => {
 				content: parsedHTML,
 				title: activePost.title,
 				labels: activePost.labels,
+				isDraft: isDraft,
 			};
-			if (activePost) {
+			console.log(postData);
+			if (activePost.id) {
+				console.log(`Update`);
 				return gapi.client.blogger.posts.update({
 					...postData,
 					postId: activePost.id,
 				}).then((res: any) => {
 					setActivePost(res.result);
+					return res.result;
 				});
 			} else {
+				console.log(`Insert`);
 				return gapi.client.blogger.posts.insert(postData).then((res: any) => {
 					setActivePost(res.result);
+					return res.result;
 				});
 			}
 		}
@@ -657,12 +663,17 @@ export const BloggerEditor: React.FunctionComponent = () => {
 			onClick: async (ev?: React.MouseEvent<HTMLElement, MouseEvent> | React.KeyboardEvent<HTMLElement>, item?: Fluent.IContextualMenuItem) => {
 				if (gapi.client && gapi.client.blogger) {
 					showDialog(`Publishing your post...`, `Publish`);
-					await saveOrCreatePost();
-					const postData = {
-						blogId: activeBlog.id,
-						postId: activePost.id,
-					};
-					gapi.client.blogger.posts.publish(postData).then((res: any) => {
+					await saveOrCreatePost(false)
+					/*
+					.then(res => {
+						const postData = {
+							blogId: activeBlog.id,
+							postId: res.id,
+						};
+						return gapi.client.blogger.posts.publish(postData);
+					})
+					*/
+					.then((res: any) => {
 						setActivePost(undefined);
 						setActiveBlog(undefined);
 						setExpanded(blogsID);
@@ -706,6 +717,7 @@ export const BloggerEditor: React.FunctionComponent = () => {
 		setActiveBlog(ab);
 		if (gapi.client && gapi.client.blogger) {
 			loadPosts(ab.id).then((res: any) => {
+				console.log(res.result.items);
 				setMyPosts(res.result.items);
 				setExpanded(articlesID);
 			});
