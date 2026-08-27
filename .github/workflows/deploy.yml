@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,6 +40,7 @@ jobs:
           path: ./dist
 
   deploy:
+    if: github.ref == 'refs/heads/production'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
