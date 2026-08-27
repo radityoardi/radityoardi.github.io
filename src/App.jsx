@@ -21,6 +21,7 @@ import AvatarImg from './assets/img/ToonRadityoCircle.png'
 export default function App() {
   const ref = useRef(null)
   const [open, setOpen] = useState(false)
+  const [page, setPage] = useState(() => window.location.pathname === '/about' ? 'about' : 'home')
 
   useEffect(() => {
     const el = ref.current
@@ -40,7 +41,18 @@ export default function App() {
 
   const toggleDrawer = (value) => () => setOpen(value)
 
-  const [page, setPage] = useState('home')
+  useEffect(() => {
+    const onPopState = () => setPage(window.location.pathname === '/about' ? 'about' : 'home')
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  const navigate = (nextPage) => {
+    const path = nextPage === 'about' ? '/about' : '/'
+    window.history.pushState({}, '', path)
+    setPage(nextPage)
+    setOpen(false)
+  }
 
   return (
     <div ref={ref} className="bg-root">
@@ -75,13 +87,13 @@ export default function App() {
       <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
         <Box sx={{ width: 260 }} role="presentation" onKeyDown={() => setOpen(false)}>
           <List>
-            <ListItemButton onClick={() => { setPage('home'); setOpen(false); }}>
+            <ListItemButton onClick={() => navigate('home')}>
               <ListItemIcon>
                 <HomeIcon />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
-            <ListItemButton onClick={() => { setPage('about'); setOpen(false); }}>
+            <ListItemButton onClick={() => navigate('about')}>
               <ListItemIcon>
                 <InfoIcon />
               </ListItemIcon>
