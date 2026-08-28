@@ -1,4 +1,4 @@
-name: Build and deploy dist to production
+name: Build and deploy dist to PROD
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  deploy-production:
+  deploy-prod:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout master
@@ -29,7 +29,7 @@ jobs:
       - name: Build site
         run: npm run build
 
-      - name: Prepare production branch
+      - name: Prepare PROD branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -37,13 +37,13 @@ jobs:
           mkdir -p /tmp/site-build
           cp -R dist /tmp/site-build/dist
 
-          git stash push --include-untracked -m "temp before production publish" || true
-          git fetch origin production || true
+          git stash push --include-untracked -m "temp before PROD publish" || true
+          git fetch origin PROD || true
 
-          if git ls-remote --exit-code --heads origin production >/dev/null 2>&1; then
-            git checkout -B production origin/production
+          if git ls-remote --exit-code --heads origin PROD >/dev/null 2>&1; then
+            git checkout -B PROD origin/PROD
           else
-            git checkout --orphan production
+            git checkout --orphan PROD
           fi
 
           git rm -rf . >/dev/null 2>&1 || true
@@ -56,5 +56,5 @@ jobs:
             git commit -m "Deploy built site"
           fi
 
-      - name: Push dist to production
-        run: git push origin HEAD:production --force
+      - name: Push dist to PROD
+        run: git push origin HEAD:PROD --force
