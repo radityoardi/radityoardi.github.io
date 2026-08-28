@@ -47,8 +47,8 @@ jobs:
           fi
 
           git clean -fdx
-          git rm -rf . >/dev/null 2>&1 || true
-          find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          git ls-files -z | xargs -0 -r rm -rf --
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
           cp -R /tmp/site-build/dist/. .
           git add -A
 
