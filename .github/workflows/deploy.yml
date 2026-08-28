@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   deploy-prod:
+    name: Deploy to PROD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout master
