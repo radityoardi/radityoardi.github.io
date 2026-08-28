@@ -1,0 +1,23 @@
+{
+  "menu": {
+    "buttonIcon": "MenuIcon",
+    "drawerAnchor": "right"
+  },
+  "pages": [
+    {
+      "id": "home",
+      "label": "Home",
+      "path": "/",
+      "file": "Home.md",
+      "icon": "HomeIcon",
+      "default": true
+    },
+    {
+      "id": "about",
+      "label": "About",
+      "path": "/about",
+      "file": "About.md",
+      "icon": "InfoIcon"
+    }
+  ]
+}

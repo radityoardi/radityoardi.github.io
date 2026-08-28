@@ -10,18 +10,35 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
+import ReactMarkdown from 'react-markdown'
 
 import MenuIcon from '@mui/icons-material/Menu'
 import HomeIcon from '@mui/icons-material/Home'
 import InfoIcon from '@mui/icons-material/Info'
 import Avatar from '@mui/material/Avatar'
-import About from './pages/About'
 import AvatarImg from './assets/img/ToonRadityoCircle.png'
+import pagesConfig from './pages.config.json'
 
+const iconMap = {
+  MenuIcon,
+  HomeIcon,
+  InfoIcon,
+}
+
+const resolvePageId = () => {
+  const pathname = window.location.pathname
+  const match = pagesConfig.pages.find((page) => page.path === pathname)
+  return match ? match.id : (pagesConfig.pages.find((page) => page.default)?.id ?? pagesConfig.pages[0].id)
+}
 export default function App() {
   const ref = useRef(null)
   const [open, setOpen] = useState(false)
-  const [page, setPage] = useState(() => window.location.pathname === '/about' ? 'about' : 'home')
+  const [pageId, setPageId] = useState(() => resolvePageId())
+  const [content, setContent] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  const activePage = pagesConfig.pages.find((page) => page.id === pageId) ?? pagesConfig.pages[0]
+  const MenuButtonIcon = iconMap[pagesConfig.menu.buttonIcon] ?? MenuIcon
 
   useEffect(() => {
     const el = ref.current
@@ -39,18 +56,52 @@ export default function App() {
     return () => window.removeEventListener('pointermove', onMove)
   }, [])
 
+  useEffect(() => {
+    let isMounted = true
+    setLoading(true)
+
+    fetch(`/pages/${activePage.file}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load ${activePage.file}`)
+        }
+        return response.text()
+      })
+      .then((markdown) => {
+        if (isMounted) {
+          setContent(markdown)
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setContent(`# Unable to load content\n\nThe page content for ${activePage.label} could not be loaded.`)
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [activePage])
+
   const toggleDrawer = (value) => () => setOpen(value)
 
   useEffect(() => {
-    const onPopState = () => setPage(window.location.pathname === '/about' ? 'about' : 'home')
+    const onPopState = () => setPageId(resolvePageId())
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  const navigate = (nextPage) => {
-    const path = nextPage === 'about' ? '/about' : '/'
-    window.history.pushState({}, '', path)
-    setPage(nextPage)
+  const navigate = (nextPageId) => {
+    const nextPage = pagesConfig.pages.find((page) => page.id === nextPageId)
+    if (!nextPage) return
+
+    window.history.pushState({}, '', nextPage.path)
+    setPageId(nextPage.id)
     setOpen(false)
   }
 
@@ -63,45 +114,49 @@ export default function App() {
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1 }} />
           <IconButton edge="end" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
-            <MenuIcon />
+            <MenuButtonIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
 
       <Toolbar />
 
-      <Container sx={{ height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {page === 'home' && (
+      <Container sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {loading ? (
           <Box sx={{ color: 'text.primary', p: 4, maxWidth: 800 }}>
-            <Typography variant="h3" component="h1" gutterBottom>
-              Hello World, I'm Radityo Ardi!
-            </Typography>
-            <Typography variant="body1" paragraph>
-              I’m a technologist with 14 years of software engineering behind me, which means I’ve spent a lot of time turning coffee into code, translating vague business requests into working solutions, and pretending “it’s probably a minor issue” is a perfectly acceptable explanation for a production outage. I’ve built systems, fixed bugs, and survived enough sprint deadlines to know that software projects are really just organized chaos with better Jira tickets.
-            </Typography>
-            <Typography variant="body1" paragraph>
-              Now I’m venturing into Business Analysis and Project Management, which is basically the same job but with more meetings, fewer semicolons, and a lot more explaining to people why the timeline “wasn’t actually unrealistic” until it became obviously unrealistic. I still love the technology, but I’ve learned that the real magic is connecting business goals, stakeholder expectations, and execution strategy—without accidentally turning everyone into a support ticket.
-            </Typography>
+            <Typography variant="body1">Loading content...</Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              color: 'text.primary',
+              p: 4,
+              maxWidth: 800,
+              '& h1': { fontSize: '2.5rem', lineHeight: 1.2, mb: 2 },
+              '& h2': { fontSize: '2rem', lineHeight: 1.3, mb: 2 },
+              '& p': { fontSize: '1.05rem', lineHeight: 1.8, mb: 2 },
+              '& ul, & ol': { pl: 3, mb: 2, lineHeight: 1.8 },
+            }}
+          >
+            <ReactMarkdown>{content}</ReactMarkdown>
           </Box>
         )}
-        {page === 'about' && <About />}
       </Container>
 
-      <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
+      <Drawer anchor={pagesConfig.menu.drawerAnchor ?? 'right'} open={open} onClose={toggleDrawer(false)}>
         <Box sx={{ width: 260 }} role="presentation" onKeyDown={() => setOpen(false)}>
           <List>
-            <ListItemButton onClick={() => navigate('home')}>
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText primary="Home" />
-            </ListItemButton>
-            <ListItemButton onClick={() => navigate('about')}>
-              <ListItemIcon>
-                <InfoIcon />
-              </ListItemIcon>
-              <ListItemText primary="About" />
-            </ListItemButton>
+            {pagesConfig.pages.map((page) => {
+              const PageIcon = iconMap[page.icon] ?? InfoIcon
+              return (
+                <ListItemButton key={page.id} onClick={() => navigate(page.id)}>
+                  <ListItemIcon>
+                    <PageIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={page.label} />
+                </ListItemButton>
+              )
+            })}
           </List>
         </Box>
       </Drawer>
