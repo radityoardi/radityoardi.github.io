@@ -1,4 +1,4 @@
-name: Sync master to production
+name: Build and deploy dist to production
 
 on:
   push:
@@ -9,22 +9,48 @@ permissions:
   contents: write
 
 jobs:
-  sync-production:
+  deploy-production:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout master
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure git
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Prepare production branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Merge master into production
-        run: |
-          git fetch origin production
-          git checkout production
-          git merge --no-edit master
-          git push origin production
+          git fetch origin production || true
+
+          if git ls-remote --exit-code --heads origin production >/dev/null 2>&1; then
+            git checkout -B production origin/production
+          else
+            git checkout --orphan production
+          fi
+
+          git rm -rf . || true
+          cp -R dist/. .
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to deploy."
+          else
+            git commit -m "Deploy built site"
+          fi
+
+      - name: Push dist to production
+        run: git push origin HEAD:production --force
