@@ -1,0 +1,37 @@
+{
+  "menu": {
+    "buttonIcon": "MenuIcon",
+    "drawerAnchor": "right"
+  },
+  "pages": [
+    {
+      "id": "home",
+      "label": "Home",
+      "path": "/",
+      "file": "Home.md",
+      "icon": "HomeIcon",
+      "title": "Radityo Ardi | Home",
+      "type": "markdown",
+      "default": true
+    },
+    {
+      "id": "about",
+      "label": "About",
+      "path": "/about",
+      "file": "About.md",
+      "icon": "InfoIcon",
+      "title": "Radityo Ardi | About",
+      "type": "markdown"
+    },
+    {
+      "id": "not-found",
+      "label": "Not Found",
+      "path": "/404",
+      "file": "404.md",
+      "icon": "InfoIcon",
+      "title": "Radityo Ardi | Page Not Found",
+      "type": "markdown",
+      "hidden": true
+    }
+  ]
+}

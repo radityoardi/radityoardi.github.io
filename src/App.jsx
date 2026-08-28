@@ -17,7 +17,6 @@ import HomeIcon from '@mui/icons-material/Home'
 import InfoIcon from '@mui/icons-material/Info'
 import Avatar from '@mui/material/Avatar'
 import AvatarImg from './assets/img/ToonRadityoCircle.png'
-import pagesConfig from './pages.config.json'
 
 const iconMap = {
   MenuIcon,
@@ -25,20 +24,78 @@ const iconMap = {
   InfoIcon,
 }
 
-const resolvePageId = () => {
-  const pathname = window.location.pathname
-  const match = pagesConfig.pages.find((page) => page.path === pathname)
-  return match ? match.id : (pagesConfig.pages.find((page) => page.default)?.id ?? pagesConfig.pages[0].id)
+const normalizePath = (value) => {
+  if (!value || value === '/') return '/'
+
+  const normalized = value.startsWith('/') ? value : `/${value}`
+  return normalized.length > 1 && normalized.endsWith('/') ? normalized.slice(0, -1) : normalized
 }
+
+const getInitialPathFromQuery = () => {
+  const params = new URLSearchParams(window.location.search)
+  const path = params.get('path')
+  return path ? normalizePath(path) : null
+}
+
+const resolvePageId = (pagesConfig, pathname = window.location.pathname) => {
+  const candidatePath = getInitialPathFromQuery() ?? pathname
+  const normalizedPath = normalizePath(candidatePath)
+  const match = pagesConfig.pages.find((page) => normalizePath(page.path) === normalizedPath)
+
+  if (match) {
+    return match.id
+  }
+
+  const notFoundPage = pagesConfig.pages.find((page) => page.type === 'markdown' && page.hidden === true && page.id === 'not-found')
+  return notFoundPage ? notFoundPage.id : (pagesConfig.pages.find((page) => page.default)?.id ?? pagesConfig.pages[0].id)
+}
+
 export default function App() {
   const ref = useRef(null)
   const [open, setOpen] = useState(false)
-  const [pageId, setPageId] = useState(() => resolvePageId())
+  const [pagesConfig, setPagesConfig] = useState(null)
+  const [pageId, setPageId] = useState('home')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
+  const [configLoading, setConfigLoading] = useState(true)
 
-  const activePage = pagesConfig.pages.find((page) => page.id === pageId) ?? pagesConfig.pages[0]
-  const MenuButtonIcon = iconMap[pagesConfig.menu.buttonIcon] ?? MenuIcon
+  useEffect(() => {
+    fetch('/pages.config.json')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load pages.config.json')
+        }
+        return response.json()
+      })
+      .then((config) => {
+        setPagesConfig(config)
+        const resolvedPath = getInitialPathFromQuery() ?? window.location.pathname
+        const initialPageId = resolvePageId(config, resolvedPath)
+        setPageId(initialPageId)
+        if (resolvedPath && window.location.pathname === '/') {
+          window.history.replaceState({}, '', resolvedPath)
+        }
+      })
+      .catch(() => {
+        setPagesConfig({
+          menu: { buttonIcon: 'MenuIcon', drawerAnchor: 'right' },
+          pages: [
+            { id: 'home', label: 'Home', path: '/', file: 'Home.md', icon: 'HomeIcon', type: 'markdown', default: true },
+            { id: 'about', label: 'About', path: '/about', file: 'About.md', icon: 'InfoIcon', type: 'markdown' },
+            { id: 'not-found', label: 'Not Found', path: '/404', file: '404.md', icon: 'InfoIcon', type: 'markdown', hidden: true },
+          ],
+        })
+      })
+      .finally(() => setConfigLoading(false))
+  }, [])
+
+  const activePage = pagesConfig?.pages.find((page) => page.id === pageId) ?? pagesConfig?.pages[0] ?? null
+  const MenuButtonIcon = pagesConfig ? (iconMap[pagesConfig.menu.buttonIcon] ?? MenuIcon) : MenuIcon
+
+  useEffect(() => {
+    if (!activePage) return
+    document.title = activePage.title || activePage.label
+  }, [activePage])
 
   useEffect(() => {
     const el = ref.current
@@ -57,6 +114,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!pagesConfig || !activePage) return
+
     let isMounted = true
     setLoading(true)
 
@@ -86,17 +145,21 @@ export default function App() {
     return () => {
       isMounted = false
     }
-  }, [activePage])
+  }, [pagesConfig, activePage])
 
   const toggleDrawer = (value) => () => setOpen(value)
 
   useEffect(() => {
-    const onPopState = () => setPageId(resolvePageId())
+    if (!pagesConfig) return
+
+    const onPopState = () => setPageId(resolvePageId(pagesConfig, window.location.pathname))
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
-  }, [])
+  }, [pagesConfig])
 
   const navigate = (nextPageId) => {
+    if (!pagesConfig) return
+
     const nextPage = pagesConfig.pages.find((page) => page.id === nextPageId)
     if (!nextPage) return
 
@@ -122,7 +185,11 @@ export default function App() {
       <Toolbar />
 
       <Container sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {loading ? (
+        {configLoading || !pagesConfig || !activePage ? (
+          <Box sx={{ color: 'text.primary', p: 4, maxWidth: 800 }}>
+            <Typography variant="body1">Loading content...</Typography>
+          </Box>
+        ) : loading ? (
           <Box sx={{ color: 'text.primary', p: 4, maxWidth: 800 }}>
             <Typography variant="body1">Loading content...</Typography>
           </Box>
@@ -143,23 +210,27 @@ export default function App() {
         )}
       </Container>
 
-      <Drawer anchor={pagesConfig.menu.drawerAnchor ?? 'right'} open={open} onClose={toggleDrawer(false)}>
-        <Box sx={{ width: 260 }} role="presentation" onKeyDown={() => setOpen(false)}>
-          <List>
-            {pagesConfig.pages.map((page) => {
-              const PageIcon = iconMap[page.icon] ?? InfoIcon
-              return (
-                <ListItemButton key={page.id} onClick={() => navigate(page.id)}>
-                  <ListItemIcon>
-                    <PageIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={page.label} />
-                </ListItemButton>
-              )
-            })}
-          </List>
-        </Box>
-      </Drawer>
+      {pagesConfig && (
+        <Drawer anchor={pagesConfig.menu.drawerAnchor ?? 'right'} open={open} onClose={toggleDrawer(false)}>
+          <Box sx={{ width: 260 }} role="presentation" onKeyDown={() => setOpen(false)}>
+            <List>
+              {pagesConfig.pages
+                .filter((page) => !page.hidden)
+                .map((page) => {
+                  const PageIcon = iconMap[page.icon] ?? InfoIcon
+                  return (
+                    <ListItemButton key={page.id} onClick={() => navigate(page.id)}>
+                      <ListItemIcon>
+                        <PageIcon />
+                      </ListItemIcon>
+                      <ListItemText primary={page.label} />
+                    </ListItemButton>
+                  )
+                })}
+            </List>
+          </Box>
+        </Drawer>
+      )}
     </div>
   )
 }
