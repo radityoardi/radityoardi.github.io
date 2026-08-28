@@ -34,6 +34,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          mkdir -p /tmp/site-build
+          cp -R dist /tmp/site-build/dist
+
+          git stash push --include-untracked -m "temp before production publish" || true
           git fetch origin production || true
 
           if git ls-remote --exit-code --heads origin production >/dev/null 2>&1; then
@@ -42,9 +46,9 @@ jobs:
             git checkout --orphan production
           fi
 
-          git rm -rf . || true
-          cp -R dist/. .
-          git add .
+          git rm -rf . >/dev/null 2>&1 || true
+          cp -R /tmp/site-build/dist/. .
+          git add -A
 
           if git diff --cached --quiet; then
             echo "No changes to deploy."
