@@ -184,7 +184,7 @@ export default function App() {
 
       <Toolbar />
 
-      <Container sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Container sx={{ minHeight: 'calc(100dvh - 64px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', py: 8 }}>
         {configLoading || !pagesConfig || !activePage ? (
           <Box sx={{ color: 'text.primary', p: 4, maxWidth: 800 }}>
             <Typography variant="body1">Loading content...</Typography>
