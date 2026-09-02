@@ -28,6 +28,8 @@ jobs:
         run: npm ci
 
       - name: Build site
+        env:
+          VITE_GIPHY_APIKEY: ${{ secrets.VITE_GIPHY_APIKEY }}
         run: npm run build
 
       - name: Prepare PROD branch

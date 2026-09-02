@@ -1,24 +1,78 @@
-:root {
-  --mx: 50%;
-  --my: 50%;
+:root{
+  --bg: #071028;
+  --fg: #e6eef8;
+  --muted: #9fb0c9;
+  --rail-w-collapsed:72px;
+  --rail-w-expanded:200px;
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  font-family: 'Average Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial;
+  background-color:var(--bg);
+  color:var(--fg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background-image: radial-gradient(circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(60,96,150,0.12), transparent 88%);
+  background-repeat:no-repeat;
+}
+.app-root{display:block;min-height:100vh}
+
+/* Navigation rail (Material 3 style) */
+.app-root{display:flex;min-height:100vh;overflow:hidden}
+.nav-rail{position:sticky;top:0;right:0;height:100vh;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px;border-left:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);overflow:hidden}
+.nav-rail.collapsed{width:72px}
+.nav-rail.expanded{width:200px}
+.nav-rail{transition:width 200ms ease}
+
+.rail-toggle{appearance:none;border:0;background:transparent;color:var(--muted);padding:8px;cursor:pointer;display:flex;justify-content:center}
+.rail-toggle .material-icons{font-size:20px}
+
+.nav-rail nav{display:flex;flex-direction:column;gap:6px;padding-top:8px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;color:var(--muted);text-decoration:none;border-radius:10px}
+.nav-item .material-icons{font-size:24px}
+.nav-item[aria-current="page"]{color:var(--fg);background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent)}
+
+.nav-label{opacity:0;transform:translateX(6px);transition:opacity 200ms ease, transform 200ms ease;white-space:nowrap}
+
+.nav-rail.expanded .nav-label{opacity:1;transform:translateX(0)}
+
+/* reserve space so rail doesn't overlap content on small screens */
+.app-root.collapsed .main-content{padding-right:var(--rail-w-collapsed)}
+.app-root.expanded .main-content{padding-right:var(--rail-w-expanded)}
+
+/* ensure rail overlays content cleanly on mobile */
+.nav-rail{z-index:40}
+
+/* Giphy search styles */
+.giphy-search{margin-top:12px}
+.search-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.search-field{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:999px}
+.search-field input{background:transparent;border:0;color:var(--fg);outline:none;font-size:1rem;width:320px}
+.loader{color:var(--muted);font-size:0.9rem}
+.error{color:#ffb4b4}
+.giphy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.giphy-card{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.giphy-card img{width:100%;height:180px;object-fit:cover;background:#0a1630}
+.card-body{padding:10px}
+.card-title{font-size:0.95rem;color:var(--fg);margin-bottom:6px}
+.card-sub{font-size:0.8rem;color:var(--muted)}
+
+/* make main area the only scrollable region to avoid double scrollbars */
+.main-content{padding:36px;flex:1;overflow:auto}
+
+@media (max-width:720px){
+  .nav-rail{position:fixed;right:0;top:0;z-index:20}
+  .main-content{padding:20px}
 }
 
-.bg-root {
-  min-height: 100dvh;
-  width: 100%;
-  background: radial-gradient(
-    circle at var(--mx) var(--my),
-    rgba(2, 30, 52, 0.98) 0%,
-    rgba(1, 10, 30, 0.9) 90%,
-    rgba(0,0,0,1) 300%
-  );
-  background-color: #000;
-  transition: background 120ms linear;
-  overflow: auto;
-}
+/* header/menu styles removed; nav rail toggle is the hamburger icon within the rail */
 
-html, body, #root {
-  min-height: 100%;
-  margin: 0;
-  font-family: 'Average Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+.page{max-width:780px;margin:0 auto}
+h1{font-size:clamp(1.4rem,2.6vw,2.4rem);margin-bottom:12px}
+p{line-height:1.6;color:var(--fg);margin-bottom:12px}
+
+@media (max-width:720px){
+  .main-content{padding:20px}
 }

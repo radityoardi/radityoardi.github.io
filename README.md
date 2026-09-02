@@ -1,17 +1,17 @@
-# personal-website2
+# Radityo Ardi — Site
 
-Scaffolded a minimal Vite + React app with a moving radial gradient background.
+Scaffolded Vite + React + TypeScript site using Material Web (M3). Run with:
 
-Install dependencies (includes the packages you requested):
-
-```bash
-npm install @mui/material @mui/icons-material @emotion/react @emotion/styled react react-dom vite @vitejs/plugin-react
 ```
-
-Run the dev server:
-
-```bash
+npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Environment
+- Create a `.env` or set environment variable `VITE_GIPHY_APIKEY` with your Giphy API key before running the app or building for production. Example file provided as `.env.example`.
+
+For production builds (e.g., GitHub Pages), set the env var at build time:
+
+```bash
+VITE_GIPHY_APIKEY=your_key_here npm run build
+```
