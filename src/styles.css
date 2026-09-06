@@ -12,10 +12,17 @@ body{
   color:var(--fg);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
+}
+.app-root{
+  display:block;
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
   background-image: radial-gradient(circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(60,96,150,0.12), transparent 88%);
   background-repeat:no-repeat;
+  background-attachment:fixed;
+  background-size:cover;
 }
-.app-root{display:block;min-height:100vh;position:relative;overflow:hidden}
 .dot-grid{
   position:fixed;
   inset:0;
@@ -30,6 +37,23 @@ body{
   box-shadow:0 0 6px rgba(150, 183, 255, 0.12);
   transform:translate(0, 0);
   transition:transform 160ms ease-out, opacity 200ms ease;
+}
+.mouse-favicon{
+  position:fixed;
+  left:0;
+  top:0;
+  width:16px;
+  height:16px;
+  pointer-events:none;
+  z-index:60;
+  transform:translate(-50%, -50%);
+  filter:drop-shadow(0 0 8px rgba(190, 210, 255, 0.45));
+}
+.mouse-favicon img{
+  display:block;
+  width:16px;
+  height:16px;
+  object-fit:contain;
 }
 .main-content{position:relative;z-index:1}
 
@@ -229,7 +253,7 @@ body{
 .card-sub{font-size:0.8rem;color:var(--muted)}
 
 /* make main area the only scrollable region to avoid double scrollbars */
-.main-content{padding:36px;overflow:auto}
+.main-content{padding:36px;overflow:auto;min-height:100vh}
 
 .page{max-width:780px;margin:0 auto}
 h1{font-size:clamp(1.4rem,2.6vw,2.4rem);margin-bottom:12px}

@@ -85,6 +85,10 @@ export default function App() {
         })}
       </div>
 
+      <div className="mouse-favicon" aria-hidden="true" style={{ left: mouse.x, top: mouse.y }}>
+        <img src="/favico/favicon-16x16.png" alt="" />
+      </div>
+
       <div className="fab-shell" aria-label="Quick navigation">
         <button
           type="button"
