@@ -3,6 +3,8 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import AboutMe from './pages/AboutMe'
 import Giphy from './pages/Giphy'
+import Blog from './pages/Blog'
+import BlogDetail from './pages/BlogDetail'
 import NotFound from './pages/NotFound'
 
 const DOT_SPACING = 50
@@ -109,6 +111,14 @@ export default function App() {
             </span>
           </Link>
 
+          <Link to="/blog" className="fab-item" aria-current={location.pathname.startsWith('/blog') ? 'page' : undefined} onClick={() => setFabOpen(false)}>
+            <span className="material-icons">article</span>
+            <span className="fab-text">
+              <span className="fab-title">Blog</span>
+              <span className="fab-subtitle">Notes, ideas, and the occasional very serious nonsense.</span>
+            </span>
+          </Link>
+
           <Link to="/giphy" className="fab-item" aria-current={location.pathname === '/giphy' ? 'page' : undefined} onClick={() => setFabOpen(false)}>
             <span className="material-icons">gif</span>
             <span className="fab-text">
@@ -130,6 +140,8 @@ export default function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
           <Route path="/about-me" element={<AboutMe />} />
           <Route path="/giphy" element={<Giphy />} />
           <Route path="*" element={<NotFound />} />
