@@ -11,6 +11,7 @@ const GRAVITY_RADIUS = 300
 export default function App() {
   const location = useLocation()
   const [mouse, setMouse] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
+  const [fabOpen, setFabOpen] = useState(false)
 
   useEffect(() => {
     const doc = document.documentElement
@@ -31,6 +32,7 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    setFabOpen(false)
   }, [location.pathname])
 
   const dots = useMemo(() => {
@@ -54,23 +56,8 @@ export default function App() {
     return list
   }, [])
 
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try {
-      const v = localStorage.getItem('navCollapsed')
-      return v === null ? true : v === 'true'
-    } catch {
-      return true
-    }
-  })
-
-  function toggleRail() {
-    const next = !collapsed
-    setCollapsed(next)
-    try { localStorage.setItem('navCollapsed', String(next)) } catch {}
-  }
-
   return (
-    <div className={`app-root ${collapsed ? 'collapsed' : 'expanded'}`}>
+    <div className="app-root">
       <div className="dot-grid" aria-hidden="true">
         {dots.map((dot) => {
           const dx = mouse.x - dot.x
@@ -98,6 +85,44 @@ export default function App() {
         })}
       </div>
 
+      <div className="fab-shell" aria-label="Quick navigation">
+        <button
+          type="button"
+          className="fab-button"
+          aria-label={fabOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={fabOpen}
+          onClick={() => setFabOpen((open) => !open)}
+        >
+          <span className="material-icons">{fabOpen ? 'close' : 'menu'}</span>
+        </button>
+
+        <nav className={`fab-menu ${fabOpen ? 'open' : ''}`} aria-label="Primary navigation">
+          <Link to="/" className="fab-item" aria-current={location.pathname === '/' ? 'page' : undefined} onClick={() => setFabOpen(false)}>
+            <span className="material-icons">home</span>
+            <span className="fab-text">
+              <span className="fab-title">Homebase</span>
+              <span className="fab-subtitle">Where the Wi‑Fi is strong and the thoughts are less so.</span>
+            </span>
+          </Link>
+
+          <Link to="/giphy" className="fab-item" aria-current={location.pathname === '/giphy' ? 'page' : undefined} onClick={() => setFabOpen(false)}>
+            <span className="material-icons">gif</span>
+            <span className="fab-text">
+              <span className="fab-title">GIF Palace</span>
+              <span className="fab-subtitle">The kingdom of looping chaos and emotional support memes.</span>
+            </span>
+          </Link>
+
+          <Link to="/about-me" className="fab-item" aria-current={location.pathname === '/about-me' ? 'page' : undefined} onClick={() => setFabOpen(false)}>
+            <span className="material-icons">info</span>
+            <span className="fab-text">
+              <span className="fab-title">About the Wizard</span>
+              <span className="fab-subtitle">A brief tale of code, coffee, and pretending deadlines are suggestions.</span>
+            </span>
+          </Link>
+        </nav>
+      </div>
+
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -106,37 +131,6 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-
-      <aside className={`nav-rail ${collapsed ? 'collapsed' : 'expanded'}`} aria-label="Primary navigation">
-        <button
-          className="rail-toggle"
-          aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
-          aria-expanded={!collapsed}
-          onClick={toggleRail}
-        >
-          <span className="material-icons">menu</span>
-        </button>
-
-        <nav>
-          <Link to="/" className="nav-item" aria-current={location.pathname === '/' ? 'page' : undefined}
-            onClick={() => { setCollapsed(true); try { localStorage.setItem('navCollapsed', 'true') } catch {} }}>
-            <span className="material-icons">home</span>
-            <span className="nav-label">Home</span>
-          </Link>
-
-          <Link to="/giphy" className="nav-item" aria-current={location.pathname === '/giphy' ? 'page' : undefined}
-            onClick={() => { setCollapsed(true); try { localStorage.setItem('navCollapsed', 'true') } catch {} }}>
-            <span className="material-icons">gif</span>
-            <span className="nav-label">Giphy</span>
-          </Link>
-
-          <Link to="/about-me" className="nav-item" aria-current={location.pathname === '/about-me' ? 'page' : undefined}
-            onClick={() => { setCollapsed(true); try { localStorage.setItem('navCollapsed', 'true') } catch {} }}>
-            <span className="material-icons">info</span>
-            <span className="nav-label">About</span>
-          </Link>
-        </nav>
-      </aside>
     </div>
   )
 }

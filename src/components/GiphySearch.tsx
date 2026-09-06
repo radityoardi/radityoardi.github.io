@@ -7,11 +7,43 @@ type GifItem = {
   username?: string
 }
 
+const PINNED_SEARCH_STORAGE_KEY = 'giphy-pinned-searches'
+
+function readPinnedSearches(): string[] {
+  try {
+    const raw = localStorage.getItem(PINNED_SEARCH_STORAGE_KEY)
+    if (!raw) return []
+    return raw
+      .split('|')
+      .map((term) => term.trim())
+      .filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+function writePinnedSearches(terms: string[]) {
+  const value = terms.join('|')
+  try {
+    localStorage.setItem(PINNED_SEARCH_STORAGE_KEY, value)
+  } catch {
+    // ignore storage issues in restricted browsers
+  }
+
+  try {
+    document.cookie = `giphyPinnedSearches=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+  } catch {
+    // ignore cookie issues in restricted browsers
+  }
+}
+
 export default function GiphySearch() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<GifItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pinnedSearches, setPinnedSearches] = useState<string[]>(() => readPinnedSearches())
+  const [selectedPinned, setSelectedPinned] = useState<string | null>(null)
 
   const apiKey = (import.meta as any).env.VITE_GIPHY_APIKEY as string | undefined
 
@@ -56,6 +88,44 @@ export default function GiphySearch() {
     }
   }
 
+  function handlePinSearch() {
+    const clean = query.trim()
+    if (!clean) return
+
+    const nextPinned = Array.from(new Set([clean, ...pinnedSearches])).filter(Boolean)
+    setPinnedSearches(nextPinned)
+    writePinnedSearches(nextPinned)
+    setSelectedPinned(clean)
+    fetchResults(clean)
+  }
+
+  function handlePinnedClick(term: string) {
+    if (selectedPinned === term) {
+      setSelectedPinned(null)
+      setQuery('')
+      setResults([])
+      setError(null)
+      return
+    }
+
+    setSelectedPinned(term)
+    setQuery(term)
+    fetchResults(term)
+  }
+
+  function handleDeletePinned(term: string) {
+    const filtered = pinnedSearches.filter((saved) => saved !== term)
+    setPinnedSearches(filtered)
+    writePinnedSearches(filtered)
+
+    if (selectedPinned === term) {
+      setSelectedPinned(null)
+      setQuery('')
+      setResults([])
+      setError(null)
+    }
+  }
+
   return (
     <section className="giphy-search">
       <div className="search-row">
@@ -65,13 +135,49 @@ export default function GiphySearch() {
             id="giphy-query"
             placeholder="Search Giphy"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const nextValue = e.target.value
+              setQuery(nextValue)
+              if (selectedPinned && nextValue !== selectedPinned) {
+                setSelectedPinned(null)
+              }
+            }}
             onKeyDown={(e) => { if (e.key === 'Enter') fetchResults(query) }}
             aria-label="Search Giphy"
           />
         </label>
+        <button type="button" className="filled-button" onClick={handlePinSearch}>
+          Pin search
+        </button>
         {loading && <div className="loader">Searching…</div>}
       </div>
+
+      {pinnedSearches.length > 0 && (
+        <div className="pinned-searches" aria-label="Pinned searches">
+          {pinnedSearches.map((term) => (
+            <div key={term} className={`pinned-search ${selectedPinned === term ? 'selected' : ''}`}>
+              <button
+                type="button"
+                className="pinned-search-label"
+                onClick={() => handlePinnedClick(term)}
+                aria-pressed={selectedPinned === term}
+              >
+                {term}
+              </button>
+
+              <button
+                type="button"
+                className="pinned-search-remove"
+                aria-label={`Remove saved search ${term}`}
+                title={`Remove ${term}`}
+                onClick={() => handleDeletePinned(term)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {error && <div className="error">{error}</div>}
 
