@@ -331,6 +331,37 @@ h1{font-size:clamp(1.4rem,2.6vw,2.4rem);margin-bottom:12px}
 p{line-height:1.6;color:var(--fg);margin-bottom:12px}
 
 @media (max-width:720px){
-  .main-content{padding:20px}
+  .fab-shell{
+    top:auto;
+    bottom:20px;
+    right:20px;
+  }
+
+  .fab-menu{
+    position:absolute;
+    right:0;
+    bottom:calc(100% + 12px);
+    left:auto;
+  }
+
+  .main-content{
+    padding:20px 16px 96px;
+  }
+
+  .search-row{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .search-field{
+    max-width:none;
+    width:100%;
+  }
+
+  .filled-button{
+    width:100%;
+  }
+
   .blog-grid{grid-template-columns:1fr}
 }
