@@ -18,7 +18,11 @@ function getConfluenceSpaceKey() {
 }
 
 function getConfluenceRequestBase() {
-  return '/api/confluence'
+  if (import.meta.env.DEV) {
+    return '/api/confluence'
+  }
+
+  return `${getConfluenceBaseUrl()}/wiki/rest/api/content`
 }
 
 function getConfluenceEmail() {
@@ -151,7 +155,8 @@ export async function fetchBlogPosts(): Promise<ConfluenceBlogPost[]> {
 
   const baseUrl = getConfluenceBaseUrl()
   const spaceKey = getConfluenceSpaceKey()
-  const url = `${getConfluenceRequestBase()}?spaceKey=${encodeURIComponent(spaceKey)}&type=blogpost&limit=12&expand=body.view,body.storage,history,version,macroRenderedOutput,space`
+  const requestBase = getConfluenceRequestBase()
+  const url = `${requestBase}?spaceKey=${encodeURIComponent(spaceKey)}&type=blogpost&limit=12&expand=body.view,body.storage,history,version,macroRenderedOutput,space`
 
   const authHeader = buildAuthHeader()
   const res = await fetch(url, {
@@ -178,7 +183,8 @@ export async function fetchBlogPost(id: string): Promise<ConfluenceBlogPost> {
   }
 
   const baseUrl = getConfluenceBaseUrl()
-  const url = `${getConfluenceRequestBase()}/${id}?expand=body.view,body.storage,history,version,macroRenderedOutput,space`
+  const requestBase = getConfluenceRequestBase()
+  const url = `${requestBase}/${id}?expand=body.view,body.storage,history,version,macroRenderedOutput,space`
 
   const authHeader = buildAuthHeader()
   const res = await fetch(url, {
