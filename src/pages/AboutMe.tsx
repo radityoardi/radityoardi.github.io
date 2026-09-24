@@ -1,6 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 export default function AboutMe() {
+  useEffect(() => {
+    document.title = 'Radityo Ardi - About Me'
+  }, [])
+
   return (
     <section className="page">
       <article>

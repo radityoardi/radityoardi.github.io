@@ -8,6 +8,10 @@ export default function Blog() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    document.title = 'Radityo Ardi - Blog'
+  }, [])
+
+  useEffect(() => {
     async function load() {
       try {
         setLoading(true)

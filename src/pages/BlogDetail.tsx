@@ -9,6 +9,16 @@ export default function BlogDetail() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    document.title = 'Radityo Ardi - Blog'
+  }, [])
+
+  useEffect(() => {
+    if (post?.title) {
+      document.title = `Radityo Ardi - ${post.title}`
+    }
+  }, [post])
+
+  useEffect(() => {
     async function load() {
       if (!id) {
         setError('Missing blog ID.')
